@@ -299,6 +299,56 @@ export default function PlayPage() {
     );
   }
 
+  // FINAL RANK / PODIUM VIEW
+  if (slide?.type === "PODIUM" && gameState) {
+    const playersArr = Object.values(gameState.players).sort((a, b) => b.score - a.score);
+    const myRank = playersArr.findIndex((p) => p.id === socket?.id) + 1;
+    const totalPlayers = playersArr.length;
+
+    return (
+      <div className="relative flex flex-col justify-center items-center bg-zinc-950 min-h-[100svh] overflow-y-auto p-8 text-center">
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="z-10"
+        >
+          <div className="text-fuchsia-500 font-black uppercase tracking-[0.3em] mb-4">המשחק הסתיים!</div>
+          <h1 className="text-6xl font-black text-white mb-8">כל הכבוד!</h1>
+          
+          <div className="bg-zinc-900/50 backdrop-blur-xl border-2 border-zinc-800 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/10 to-blue-500/10 opacity-50" />
+            
+            <div className="relative z-10">
+              <div className="text-zinc-500 font-bold uppercase tracking-widest text-sm mb-2">המיקום שלך</div>
+              <div className="text-8xl font-black bg-clip-text text-transparent bg-gradient-to-b from-amber-200 to-amber-500 drop-shadow-lg leading-none mb-4">
+                #{myRank}
+              </div>
+              <div className="text-zinc-400 font-bold">מתוך {totalPlayers} משתתפים</div>
+              
+              <hr className="border-zinc-800 my-8" />
+              
+              <div className="text-zinc-500 font-bold uppercase tracking-widest text-sm mb-1">ניקוד סופי</div>
+              <div className="text-4xl font-black text-white">{Math.round(myPlayer?.score || 0).toLocaleString()}</div>
+            </div>
+          </div>
+
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="mt-12 text-zinc-500 font-medium"
+          >
+            תודה שהשתתפתם ב-CLICK MASTER!
+          </motion.div>
+        </motion.div>
+
+        {/* Cinematic Background Decoration */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-64 h-64 bg-fuchsia-500/20 blur-[100px] rounded-full" />
+        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-80 h-80 bg-blue-500/20 blur-[120px] rounded-full" />
+      </div>
+    );
+  }
+
   // WAITING/LOBBY VIEW
   return (
     <div className="relative flex flex-col justify-center items-center bg-zinc-950 min-h-[100svh] overflow-y-auto p-4">
