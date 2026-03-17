@@ -5,7 +5,7 @@ import { useSocket } from "@/contexts/SocketContext";
 import { parseCSV } from "@/utils/csvParser";
 import { calculateScore } from "@/utils/scoreCalculator";
 import { GameState, SlideData } from "@/types";
-import { Play, Pause, FastForward, Settings, Zap, Music, Volume2 } from "lucide-react";
+import { Play, Pause, FastForward, Settings, Zap, Music, Volume2, LogOut } from "lucide-react";
 
 export default function HostPage() {
   const { isConnected, joinHost, socket, gameState, syncGameState, toggleJoker } = useSocket();
@@ -30,18 +30,38 @@ export default function HostPage() {
     }
   };
 
-  const initHost = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!hostCodeInput.trim()) return;
+  const initHost = (e?: React.FormEvent, code?: string) => {
+    if (e) e.preventDefault();
+    const finalCode = code || hostCodeInput.trim();
+    if (!finalCode) return;
 
-    joinHost(hostCodeInput.trim(), (res) => {
+    joinHost(finalCode, (res) => {
       if (res.success && res.roomCode) {
         setRoomCode(res.roomCode);
         setHasJoined(true);
+        localStorage.setItem("click_master_host_code", finalCode);
       } else {
-        alert(res.error || "Failed to join as Host");
+        if (!code) alert(res.error || "Failed to join as Host");
+        else console.log("Auto-rejoin failed:", res.error);
       }
     });
+  };
+
+  // Auto-rejoin on mount
+  useEffect(() => {
+    const savedHostCode = localStorage.getItem("click_master_host_code");
+    if (isConnected && !hasJoined && savedHostCode) {
+      setHostCodeInput(savedHostCode);
+      initHost(undefined, savedHostCode);
+    }
+  }, [isConnected, hasJoined]);
+
+  const handleLogout = () => {
+    if (confirm("האם אתה בטוח שברצונך לצאת מניהול החידון?")) {
+      setHasJoined(false);
+      // We don't clear localStorage here to allow quick re-entry, 
+      // but the user can type a different code if they want.
+    }
   };
 
   // handleFileUpload removed since Screen uploads the CSV now
@@ -189,19 +209,13 @@ export default function HostPage() {
       
       {/* Header & Stats */}
       <div className="flex items-center justify-between border-b border-zinc-800 pb-4 px-2">
-        <div>
-          <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-400 to-blue-400">
-            בקרת Click-Master
-          </h2>
-          <div className="text-sm text-zinc-400 mt-1 flex gap-4">
-            <span>👥 {Object.keys(localState.players).length} שחקנים</span>
-            {localState.isQuestionActive && (
-              <span className="text-emerald-400 font-bold">● תשובות: {Object.keys(localState.answers).length}</span>
-            )}
+        <div className="flex items-center gap-3">
+          <div className="text-xs font-bold text-zinc-500 bg-zinc-950 px-3 py-1 rounded-full border border-zinc-800">
+            חדר: <span className="text-white">{roomCode}</span>
           </div>
-        </div>
-        <div className="text-xs font-bold text-zinc-500 bg-zinc-950 px-3 py-1 rounded-full border border-zinc-800">
-          חדר: <span className="text-white">{roomCode}</span>
+          <button onClick={handleLogout} className="text-zinc-500 hover:text-red-400 p-1">
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
 

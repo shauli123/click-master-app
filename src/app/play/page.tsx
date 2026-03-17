@@ -1,8 +1,5 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import { useSocket } from "@/contexts/SocketContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { LogOut } from "lucide-react";
 
 export default function PlayPage() {
   const { isConnected, joinPlayer, gameState, sendAnswer, errorMsg, socket } = useSocket();
@@ -120,6 +117,14 @@ export default function PlayPage() {
     "bg-green-600",
   ];
 
+  const handleLogout = () => {
+    if (confirm("האם אתה בטוח שברצונך לצאת מהמשחק?")) {
+      setHasJoined(false);
+      // We keep roomCodeInput/name in state for easier re-join if user stays on page
+      // But we can also clear them if we want a fresh start
+    }
+  };
+
   if (!isConnected) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -201,7 +206,12 @@ export default function PlayPage() {
               <span className="text-xl font-black text-amber-400">{myPlayer?.score || 0}</span>
             </div>
             <div className="flex flex-col items-end text-zinc-500 font-bold text-[10px] uppercase">
-              <span>{name}</span>
+              <div className="flex items-center gap-2">
+                <span>{name}</span>
+                <button onClick={handleLogout} className="text-zinc-500 hover:text-red-400 p-1">
+                  <LogOut size={14} />
+                </button>
+              </div>
               <span>חדר: {roomCode}</span>
             </div>
           </div>
@@ -288,7 +298,12 @@ export default function PlayPage() {
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] uppercase font-black text-zinc-600 tracking-widest leading-none">שם</span>
-            <span className="text-2xl font-black text-zinc-400 truncate max-w-[120px]">{name}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-zinc-400 truncate max-w-[120px]">{name}</span>
+              <button onClick={handleLogout} className="text-zinc-600 hover:text-red-400 p-1">
+                <LogOut size={16} />
+              </button>
+            </div>
           </div>
         </div>
 

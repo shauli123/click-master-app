@@ -21,14 +21,16 @@ export default function QuestionSlide({
   // Calculate speedsters
   const speedsters = useMemo(() => {
     return Object.entries(gameState.answerTimes)
+      .filter(([playerId]) => gameState.answers[playerId] === slide.correctOption)
       .map(([playerId, time]) => ({
         player: players[playerId],
         timeRemaining: time,
+        timeTaken: gameState.baseTimeAllowed - time,
       }))
       .filter((entry) => entry.player)
       .sort((a, b) => b.timeRemaining - a.timeRemaining)
       .slice(0, 5);
-  }, [gameState.answerTimes, players]);
+  }, [gameState.answerTimes, gameState.answers, players, slide.correctOption, gameState.baseTimeAllowed]);
 
   // Option colors
   const optionColors = [
@@ -109,8 +111,9 @@ export default function QuestionSlide({
               🏆 בזק
             </div>
             {speedsters.map((s, i) => (
-              <div key={s.player.id} className={`px-4 py-1.5 rounded-full text-sm font-bold border ${i === 0 ? "bg-amber-400 text-black border-amber-200" : "bg-zinc-800 text-white border-zinc-700"}`}>
-                {s.player.name}
+              <div key={s.player.id} className={`px-4 py-1.5 rounded-full text-sm font-bold border flex items-center gap-2 ${i === 0 ? "bg-amber-400 text-black border-amber-200" : "bg-zinc-800 text-white border-zinc-700"}`}>
+                <span>{s.player.name}</span>
+                <span className="opacity-60 text-[10px] tabular-nums">({s.timeTaken.toFixed(2)}s)</span>
               </div>
             ))}
           </motion.div>
