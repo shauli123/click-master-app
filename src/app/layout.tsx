@@ -24,9 +24,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="he" dir="rtl" className="h-full">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-fuchsia-300 selection:text-fuchsia-900 bg-zinc-950 text-white min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-fuchsia-300 selection:text-fuchsia-900 bg-zinc-950 text-white min-h-full h-full overflow-hidden`}
       >
         <SocketProvider>
           {children}

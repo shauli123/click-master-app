@@ -5,7 +5,7 @@ import { useSocket } from "@/contexts/SocketContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PlayPage() {
-  const { isConnected, joinPlayer, gameState, sendAnswer, errorMsg } = useSocket();
+  const { isConnected, joinPlayer, gameState, sendAnswer, errorMsg, socket } = useSocket();
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [roomCode, setRoomCode] = useState<string | null>(null);
 
@@ -43,22 +43,25 @@ export default function PlayPage() {
   };
 
   const handleAnswer = (index: number) => {
-    if (!gameState?.isQuestionActive || hasAnswered) return;
+    if (!gameState?.isQuestionActive || hasAnswered || !gameState.questionStartTime) return;
     
-    triggerHaptic([50, 50, 50]); // Multi-pulse for confirmation
+    // Performance.now() for high precision, but we need to compare with server-side questionStartTime
+    // questionStartTime is Date.now() on server.
+    const now = Date.now();
+    const elapsed = now - gameState.questionStartTime;
+    const timeRemaining = Math.max(0, (gameState.baseTimeAllowed * 1000) - elapsed);
     
-    // In a real app we'd calculate time remaining properly, simplified here
-    const timeRemaining = gameState.baseTimeAllowed || 10; 
+    triggerHaptic([50, 50, 50]);
     
-    if (roomCode) sendAnswer(roomCode, index, timeRemaining);
+    if (roomCode) sendAnswer(roomCode, index, timeRemaining / 1000);
     setHasAnswered(true);
   };
 
   const optionColors = [
-    "from-red-600 to-red-500 shadow-[0_0_30px_theme(colors.red.600/50)]",
-    "from-blue-600 to-blue-500 shadow-[0_0_30px_theme(colors.blue.600/50)]",
-    "from-yellow-500 to-yellow-400 shadow-[0_0_30px_theme(colors.yellow.500/50)] text-black",
-    "from-green-600 to-green-500 shadow-[0_0_30px_theme(colors.green.600/50)]",
+    "bg-red-600",
+    "bg-blue-600",
+    "bg-yellow-500 text-black",
+    "bg-green-600",
   ];
 
   if (!isConnected) {
@@ -78,7 +81,7 @@ export default function PlayPage() {
   // ONBOARDING VIEW
   if (!hasJoined) {
     return (
-      <div className="flex-1 flex flex-col p-8 justify-center items-center bg-zinc-950">
+      <div className="fixed inset-0 flex flex-col p-8 justify-center items-center bg-zinc-950 h-[100svh] overflow-hidden">
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-12 text-center">
           <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-500 to-blue-500">
             CLICK-MASTER
@@ -127,34 +130,78 @@ export default function PlayPage() {
 
   // GAME CONTROLLER VIEW
   const slide = gameState?.slides?.[gameState.currentSlideIndex];
-  
-  if (slide?.type === "QUESTION" && gameState?.isQuestionActive && !hasAnswered) {
-    // 4 MASSIVE BUTTONS
+  const myAnswer = roomCode && socket?.id && gameState?.answers ? gameState.answers[socket.id] : null;
+  const isCorrect = slide?.type === "QUESTION" && myAnswer !== null && myAnswer === slide.correctOption;
+
+  if (slide?.type === "QUESTION" && gameState && !gameState.showResults) {
     return (
-      <div className="flex-1 flex flex-col p-4 gap-4 bg-zinc-950">
-        <div className="text-center py-4 z-10">
-          <h2 className="text-2xl font-black text-white">{slide.content}</h2>
-          <p className="text-fuchsia-400 font-bold mt-1">בחר תשובה מהר!</p>
+      <div className="fixed inset-0 flex flex-col bg-zinc-950 h-[100svh] overflow-hidden">
+        <div className="text-center py-6 z-10 bg-zinc-900/50 backdrop-blur-md border-b border-zinc-800">
+          <h2 className="text-xl font-black text-white px-4 leading-tight">{slide.content}</h2>
+          <div className="mt-2 flex justify-center items-center gap-2">
+            {!gameState.isQuestionActive ? (
+              <span className="text-zinc-500 font-bold animate-pulse">ממתינים להפעלת הטיימר...</span>
+            ) : (
+              <span className="text-fuchsia-400 font-bold">בחרו עכשיו! ⚡</span>
+            )}
+          </div>
         </div>
         
-        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-4 pb-4">
-          {[0, 1, 2, 3].map((index) => (
-            <button
-              key={index}
-              onClick={() => handleAnswer(index)}
-              className={`rounded-[2rem] bg-gradient-to-br ${optionColors[index]} active:scale-95 transition-transform flex items-center justify-center font-black text-6xl relative overflow-hidden`}
-            >
-              <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors" />
-            </button>
-          ))}
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-4 p-4 pb-8">
+          {[0, 1, 2, 3].map((index) => {
+            const isRevealed = gameState && index < gameState.revealedOptionsCount;
+            const amIAnswering = hasAnswered && myAnswer === index;
+            
+            return (
+              <AnimatePresence key={index}>
+                {isRevealed && (
+                  <motion.button
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    onClick={() => handleAnswer(index)}
+                    disabled={!gameState?.isQuestionActive || hasAnswered}
+                    className={`rounded-[2rem] ${optionColors[index]} active:scale-95 transition-all flex items-center justify-center font-black text-6xl relative overflow-hidden ${
+                      !gameState?.isQuestionActive || (hasAnswered && !amIAnswering) ? "opacity-30 grayscale" : "opacity-100"
+                    } ${amIAnswering ? "ring-8 ring-white scale-105 z-20" : ""}`}
+                  >
+                    <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors" />
+                    {amIAnswering && <div className="absolute inset-0 flex items-center justify-center bg-white/20 animate-pulse" />}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            );
+          })}
         </div>
+      </div>
+    );
+  }
+
+  // RESULTS FEEDBACK VIEW
+  if (gameState?.showResults) {
+    return (
+      <div className="fixed inset-0 flex flex-col justify-center items-center bg-zinc-950 h-[100svh] overflow-hidden">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className={`w-64 h-64 rounded-full flex items-center justify-center text-8xl shadow-[0_0_80px_rgba(0,0,0,0.5)] mb-8 ${
+            isCorrect ? "bg-green-500 shadow-green-500/40" : "bg-red-500 shadow-red-500/40"
+          }`}
+        >
+          {isCorrect ? "🏆" : "❌"}
+        </motion.div>
+        <h2 className={`text-5xl font-black mb-4 ${isCorrect ? "text-green-400" : "text-red-400"}`}>
+          {isCorrect ? "צדקתם!" : "טעיתם!"}
+        </h2>
+        <p className="text-zinc-400 text-xl font-bold">
+          {isCorrect ? "מצוין, המשכתם קדימה!" : "לא נורא, תצליחו בבאה!"}
+        </p>
       </div>
     );
   }
 
   // WAITING/LOBBY VIEW
   return (
-    <div className="flex-1 flex flex-col justify-center items-center relative overflow-hidden bg-zinc-950">
+    <div className="fixed inset-0 flex flex-col justify-center items-center relative overflow-hidden bg-zinc-950 h-[100svh]">
       <motion.div
         animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.8, 0.3] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}

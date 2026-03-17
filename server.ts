@@ -44,13 +44,15 @@ app.prepare().then(() => {
         hostConnected: false,
         screenId: socket.id,
         players: {},
-        teams: teams || ["הנמרים", "הכרישים", "האריות"],
+        teams: (teams && teams.length > 0) ? teams : ["הנמרים", "הכרישים", "האריות"],
         slides: slides || [],
         currentSlideIndex: 0,
         jokerModeEnabled: false,
         isQuestionActive: false,
         questionStartTime: null,
         baseTimeAllowed: 15,
+        revealedOptionsCount: 0,
+        showResults: false,
         answers: {},
         answerTimes: {},
       };
@@ -58,6 +60,9 @@ app.prepare().then(() => {
       activeRooms[roomCode] = newRoom;
       socket.join(roomCode);
       console.log(`[${roomCode}] Screen created room. HostCode: ${hostCode}`);
+      
+      // Sync state back to the creator immediately
+      socket.emit("gameStateSynced", newRoom);
       
       callback({ roomCode, hostCode });
     });
@@ -108,6 +113,9 @@ app.prepare().then(() => {
       console.log(`[${room.roomCode}] Host joined successfully.`);
       
       io.to(room.roomCode).emit("hostJoined");
+      
+      // Sync state to the host immediately so they don't hang on loading
+      socket.emit("gameStateSynced", room);
       
       callback({ success: true, roomCode: room.roomCode });
     });

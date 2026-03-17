@@ -33,6 +33,8 @@ export interface GameState {
   isQuestionActive: boolean;
   questionStartTime: number | null;
   baseTimeAllowed: number; // e.g., 30 seconds
+  revealedOptionsCount: number; // 0 to 4
+  showResults: boolean; // Whether to show the correct answer and charts
   answers: Record<string, number>; // playerId -> optionIndex
   answerTimes: Record<string, number>; // playerId -> timeRemaining when answered
 }

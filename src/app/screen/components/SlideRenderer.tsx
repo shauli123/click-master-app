@@ -58,7 +58,7 @@ export default function SlideRenderer({ gameState, players }: SlideRendererProps
       default:
         return (
           <div key={`slide-${gameState.currentSlideIndex}`} className="flex items-center justify-center w-full h-full text-5xl font-black text-zinc-600">
-            UNKNOWN SLIDE TYPE: {slide.type}
+            סוג שקופית לא ידוע: {slide.type}
           </div>
         );
     }
@@ -67,7 +67,7 @@ export default function SlideRenderer({ gameState, players }: SlideRendererProps
   if (!currentSlide) {
     return (
       <div className="flex items-center justify-center w-full h-full text-5xl font-black text-zinc-600">
-        NO SLIDE ACTIVE
+        אין שקופית פעילה
       </div>
     );
   }
