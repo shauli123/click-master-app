@@ -207,7 +207,9 @@ export default function PlayPage() {
   const myAnswer = roomCode && socket?.id && gameState?.answers ? gameState.answers[socket.id] : null;
   const isCorrect = slide?.type === "QUESTION" && myAnswer !== null && myAnswer === slide.correctOption;
 
-  if (slide?.type === "QUESTION" && gameState && !gameState.showResults) {
+  if ((slide?.type === "QUESTION" || slide?.type === "POLL") && gameState && !gameState.showResults) {
+    const isPoll = slide.type === "POLL";
+    
     return (
       <div className="relative flex flex-col bg-zinc-950 min-h-[100svh] overflow-y-auto pb-8">
         <div className="flex flex-col z-10 bg-zinc-900/50 backdrop-blur-md border-b border-zinc-800">
@@ -229,12 +231,17 @@ export default function PlayPage() {
           </div>
 
           <div className="text-center py-4">
+            <div className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-1">
+              {isPoll ? "סקר אינטראקטיבי" : "שאלה מהירה"}
+            </div>
             <h2 className="text-lg font-black text-white px-6 leading-snug">{slide.content}</h2>
             <div className="mt-2 flex justify-center items-center gap-2">
               {!gameState.isQuestionActive ? (
                 <span className="text-zinc-500 font-bold animate-pulse text-sm">ממתינים להפעלת הטיימר...</span>
               ) : (
-                <span className="text-fuchsia-400 font-bold animate-bounce text-sm">בחרו עכשיו! ⚡</span>
+                <span className="text-fuchsia-400 font-bold animate-bounce text-sm">
+                  {isPoll ? "הצביעו עכשיו! 🗳️" : "בחרו עכשיו! ⚡"}
+                </span>
               )}
             </div>
           </div>
@@ -242,7 +249,7 @@ export default function PlayPage() {
         
         <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-4 p-4 pb-8">
           {[0, 1, 2, 3].map((index) => {
-            const isRevealed = gameState && index < gameState.revealedOptionsCount;
+            const isRevealed = gameState && (isPoll || index < gameState.revealedOptionsCount);
             const amIAnswering = hasAnswered && myAnswer === index;
             
             return (

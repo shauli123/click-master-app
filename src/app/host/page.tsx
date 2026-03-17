@@ -100,13 +100,14 @@ export default function HostPage() {
       const nextIndex = localState.currentSlideIndex + 1;
       const nextSlideData = localState.slides[nextIndex];
       const isQuestion = nextSlideData.type === "QUESTION";
+      const isPoll = nextSlideData.type === "POLL";
       
       pushState({
         ...localState,
         currentSlideIndex: nextIndex,
-        isQuestionActive: false, // Initially false for questions
+        isQuestionActive: false, // Initially false for questions/polls
         questionStartTime: null,
-        revealedOptionsCount: 0,
+        revealedOptionsCount: isPoll ? 4 : 0, // Auto-reveal all for polls
         showResults: false,
         answers: {},
         answerTimes: {},
@@ -313,6 +314,43 @@ export default function HostPage() {
                     >
                       <Pause fill="currentColor" size={24} />
                       <span className="text-xl font-black">סגור תשובות</span>
+                    </button>
+                  )}
+                </div>
+              ) : currentSlide?.type === "POLL" ? (
+                <div className="flex-1 flex flex-col gap-3">
+                  {/* Poll Start Button */}
+                  <button 
+                    onClick={startQuestion}
+                    disabled={localState.isQuestionActive}
+                    className={`w-full py-6 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border-2 ${
+                      !localState.isQuestionActive
+                        ? "bg-gradient-to-r from-indigo-500 to-purple-500 border-indigo-400 text-white animate-pulse" 
+                        : "bg-zinc-800 border-zinc-700 text-zinc-500 opacity-50 shadow-none pointer-events-none"
+                    }`}
+                  >
+                    <Play fill="currentColor" size={24} />
+                    <span className="text-xl font-black">הפעל סקר</span>
+                  </button>
+
+                  {/* Poll Stop Button */}
+                  {localState.isQuestionActive && (
+                    <button 
+                      onClick={() => pushState({ ...localState, isQuestionActive: false })}
+                      className="w-full py-6 rounded-xl bg-gradient-to-r from-zinc-600 to-zinc-700 border-zinc-500 text-white active:scale-95 flex flex-col items-center gap-1"
+                    >
+                      <Pause fill="currentColor" size={24} />
+                      <span className="text-xl font-black">סגור הצבעה</span>
+                    </button>
+                  )}
+                  
+                  {/* Results Toggle if closed */}
+                  {!localState.isQuestionActive && Object.keys(localState.answers).length > 0 && (
+                     <button 
+                      onClick={nextSlide}
+                      className="w-full py-6 rounded-xl bg-amber-500 text-black font-black text-xl active:scale-95 transition-all"
+                    >
+                      לשקופית הבאה
                     </button>
                   )}
                 </div>
