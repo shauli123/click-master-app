@@ -45,103 +45,98 @@ export default function PodiumSlide({ players }: { players: Player[] }) {
       </motion.div>
 
       {/* Podium Container */}
-      <div className="flex h-[55%] items-end justify-center gap-8 z-10 w-full max-w-6xl relative">
+      <div className="flex h-[45%] items-end justify-center gap-6 z-10 w-full max-w-5xl relative">
         {/* Spotlight floor */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-32 bg-amber-500/5 blur-[80px] rounded-[100%] -z-10" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-24 bg-amber-500/5 blur-[60px] rounded-[100%] -z-10" />
 
         {/* 2nd Place */}
         {second && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "65%", opacity: 1 }}
-            transition={{ duration: 1.2, ease: [0.34, 1.56, 0.64, 1], delay: 0.8 }}
-            className="flex-1 flex flex-col items-center justify-end relative group"
-          >
+          <div className="flex-1 flex flex-col items-center justify-end h-full relative group">
             <motion.div 
-              initial={{ scale: 0, y: 50, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.8 }}
-              className="absolute -top-[30%] text-center w-full"
+              className="mb-4 text-center"
             >
-              <div className="text-zinc-500 font-black text-xl mb-1 opacity-50">#2</div>
-              <h2 className="text-2xl md:text-3xl font-black bg-zinc-100 text-zinc-900 px-6 py-2 rounded-2xl mb-2 shadow-xl inline-block border-2 border-white max-w-[90%] truncate">
+              <div className="text-zinc-500 font-black text-sm uppercase opacity-50">מקום 2</div>
+              <h2 className="text-xl md:text-2xl font-black bg-zinc-100 text-zinc-900 px-5 py-2 rounded-xl mb-1 shadow-lg border-2 border-white truncate max-w-[200px]">
                 {second.name}
               </h2>
-              <div className="text-2xl font-black text-zinc-300 tracking-tighter shrink-0">
-                {Math.round(second.score).toLocaleString()} <span className="text-sm opacity-50 uppercase">PTS</span>
+              <div className="text-xl font-black text-zinc-300 tabular-nums">
+                {Math.round(second.score).toLocaleString()} <span className="text-[10px] opacity-40">PTS</span>
               </div>
             </motion.div>
-            <div className="w-full h-full bg-gradient-to-b from-zinc-200 to-zinc-400 rounded-t-[3rem] border-t-4 border-white flex items-center justify-center shadow-2xl overflow-hidden relative">
-               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-               <span className="text-[12rem] font-black text-black/10 select-none">2</span>
-            </div>
-          </motion.div>
+            <motion.div 
+              initial={{ height: 0 }}
+              animate={{ height: "60%" }}
+              transition={{ duration: 1, delay: 0.8 }}
+              className="w-full bg-gradient-to-b from-zinc-200 to-zinc-400 rounded-t-2xl border-t-4 border-white flex items-center justify-center shadow-2xl relative overflow-hidden"
+            >
+              <span className="text-[8rem] font-black text-black/10 select-none">2</span>
+            </motion.div>
+          </div>
         )}
 
         {/* 1st Place */}
         {first && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "100%", opacity: 1 }}
-            transition={{ duration: 1.8, ease: [0.34, 1.56, 0.64, 1], delay: 3.5 }}
-            className="flex-1 flex flex-col items-center justify-end relative z-30 group"
-          >
+          <div className="flex-1 flex flex-col items-center justify-end h-full relative z-30 group">
             <motion.div 
-              initial={{ scale: 0, y: 50, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              transition={{ delay: 5.5, type: "spring", stiffness: 150 }}
-              className="absolute -top-[65%] text-center w-full z-40"
+              initial={{ scale: 0, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ delay: 5.5, type: "spring" }}
+              className="mb-6 text-center z-40"
             >
               <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                className="text-6xl md:text-8xl mb-4 drop-shadow-[0_0_30px_rgba(245,158,11,0.8)] filter brightness-125"
+                animate={{ rotate: [0, -5, 5, 0] }}
+                transition={{ repeat: Infinity, duration: 3 }}
+                className="text-6xl mb-2 drop-shadow-[0_0_20px_rgba(245,158,11,0.5)]"
               >
                 👑
               </motion.div>
-              <h2 className="text-3xl md:text-5xl font-black bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 text-zinc-950 px-8 py-4 rounded-[2.5rem] mb-3 shadow-[0_0_50px_rgba(245,158,11,0.6)] inline-block border-4 border-amber-200 relative overflow-hidden max-w-[95%] truncate">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+              <h2 className="text-3xl md:text-4xl font-black bg-gradient-to-b from-amber-200 to-amber-600 text-zinc-950 px-8 py-3 rounded-2xl mb-2 shadow-[0_0_40px_rgba(245,158,11,0.4)] border-4 border-amber-200 truncate max-w-[280px]">
                 {first.name}
               </h2>
-              <div className="text-4xl font-black text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] tracking-tighter">
-                {Math.round(first.score).toLocaleString()} <span className="text-xl opacity-50 uppercase">PTS</span>
+              <div className="text-3xl font-black text-amber-400 drop-shadow-md tabular-nums">
+                {Math.round(first.score).toLocaleString()} <span className="text-xs opacity-50">PTS</span>
               </div>
             </motion.div>
-            <div className="w-full h-full bg-gradient-to-b from-amber-400 via-amber-600 to-amber-800 rounded-t-[4rem] border-t-8 border-amber-200 flex items-center justify-center shadow-[0_0_80px_rgba(245,158,11,0.4)] relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,255,255,0.3),_transparent)]" />
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <span className="text-[16rem] font-black text-zinc-950/20 select-none">1</span>
-            </div>
-          </motion.div>
+            <motion.div 
+              initial={{ height: 0 }}
+              animate={{ height: "100%" }}
+              transition={{ duration: 1.5, delay: 3.5 }}
+              className="w-full bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 rounded-t-3xl border-t-8 border-amber-200 flex items-center justify-center shadow-[0_0_60px_rgba(245,158,11,0.3)] relative overflow-hidden"
+            >
+              <span className="text-[12rem] font-black text-zinc-950/20 select-none">1</span>
+            </motion.div>
+          </div>
         )}
 
         {/* 3rd Place */}
         {third && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "45%", opacity: 1 }}
-            transition={{ duration: 1, ease: [0.34, 1.56, 0.64, 1], delay: 0.2 }}
-            className="flex-1 flex flex-col items-center justify-end relative group"
-          >
+          <div className="flex-1 flex flex-col items-center justify-end h-full relative group">
             <motion.div 
-              initial={{ scale: 0, y: 50, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2 }}
-              className="absolute -top-[25%] text-center w-full"
+              className="mb-3 text-center"
             >
-              <div className="text-amber-700 font-black text-lg mb-1 opacity-50">#3</div>
-              <h2 className="text-xl md:text-2xl font-black bg-amber-800 text-amber-100 px-5 py-2 rounded-xl mb-1 shadow-lg inline-block border-2 border-amber-600 max-w-[90%] truncate">
+              <div className="text-amber-700 font-black text-sm uppercase opacity-50">מקום 3</div>
+              <h2 className="text-lg md:text-xl font-black bg-amber-800 text-amber-100 px-4 py-1.5 rounded-lg mb-1 shadow-md border-2 border-amber-600 truncate max-w-[180px]">
                 {third.name}
               </h2>
-              <div className="text-xl font-black text-amber-600 tracking-tighter shrink-0">
-                {Math.round(third.score).toLocaleString()} <span className="text-xs opacity-50 uppercase">PTS</span>
+              <div className="text-lg font-black text-amber-600 tabular-nums">
+                {Math.round(third.score).toLocaleString()} <span className="text-[10px] opacity-40">PTS</span>
               </div>
             </motion.div>
-            <div className="w-full h-full bg-gradient-to-b from-amber-700 to-amber-900 rounded-t-[2.5rem] border-t-4 border-amber-600 flex items-center justify-center shadow-2xl relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <span className="text-[10rem] font-black text-black/20 select-none">3</span>
-            </div>
-          </motion.div>
+            <motion.div 
+              initial={{ height: 0 }}
+              animate={{ height: "40%" }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="w-full bg-gradient-to-b from-amber-700 to-amber-900 rounded-t-xl border-t-4 border-amber-600 flex items-center justify-center shadow-2xl relative overflow-hidden"
+            >
+              <span className="text-[6rem] font-black text-black/20 select-none">3</span>
+            </motion.div>
+          </div>
         )}
       </div>
       <style jsx>{`

@@ -13,7 +13,7 @@ export default function MediaSlide({ slide }: { slide: SlideData }) {
   };
 
   const videoId = isYouTube && slide.mediaUrl ? getYouTubeId(slide.mediaUrl) : null;
-  const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}` : "";
+  const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1` : "";
 
   return (
     <div className="w-full h-full flex flex-col bg-black relative">

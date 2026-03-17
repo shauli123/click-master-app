@@ -15,12 +15,31 @@ export default function HostPage() {
   const [hasJoined, setHasJoined] = useState(false);
   const [localState, setLocalState] = useState<GameState | null>(null);
 
-  // Sync our local mirror with the global game state on mount or change
+  // Sync our local mirror with the global game state to get live answers/players
   useEffect(() => {
-    if (gameState && !localState) {
-      setLocalState(gameState);
+    if (gameState) {
+      setLocalState((prev) => {
+        if (!prev) return gameState;
+        
+        // If the slide index changed globally (e.g., another host or session), sync fully
+        if (gameState.currentSlideIndex !== prev.currentSlideIndex) {
+          return gameState;
+        }
+
+        // Otherwise, keep our navigation but merge "live" data from players
+        return {
+          ...prev,
+          players: gameState.players || prev.players,
+          answers: gameState.answers || prev.answers,
+          answerTimes: gameState.answerTimes || prev.answerTimes,
+          isQuestionActive: gameState.isQuestionActive, // Sync timer state
+          showResults: gameState.showResults,
+          jokerModeEnabled: gameState.jokerModeEnabled,
+          fastestCorrectAnswer: gameState.fastestCorrectAnswer
+        };
+      });
     }
-  }, [gameState, localState]);
+  }, [gameState]);
 
   // Maintain local state to act as Source of Truth as the Host
   const pushState = (newState: GameState) => {
