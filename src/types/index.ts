@@ -37,6 +37,10 @@ export interface GameState {
   showResults: boolean; // Whether to show the correct answer and charts
   answers: Record<string, number>; // playerId -> optionIndex
   answerTimes: Record<string, number>; // playerId -> timeRemaining when answered
+  fastestCorrectAnswer?: {
+    playerName: string;
+    timeTaken: number;
+  };
 }
 
 export interface ClientToServerEvents {

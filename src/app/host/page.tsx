@@ -59,8 +59,9 @@ export default function HostPage() {
   const handleLogout = () => {
     if (confirm("האם אתה בטוח שברצונך לצאת מניהול החידון?")) {
       setHasJoined(false);
-      // We don't clear localStorage here to allow quick re-entry, 
-      // but the user can type a different code if they want.
+      localStorage.removeItem("click_master_host_code");
+      setRoomCode(null);
+      setHostCodeInput("");
     }
   };
 
@@ -130,12 +131,14 @@ export default function HostPage() {
       return;
     }
 
-    // Award points
-    const updatedPlayers = { ...state.players }; // Trust the server players currently in state
+    // Award points and track speedster
+    const updatedPlayers = { ...state.players };
+    let fastestThisTurn = state.fastestCorrectAnswer || null;
     
     Object.entries(state.answers).forEach(([playerId, selectedOption]) => {
       if (selectedOption === currentSlide.correctOption) {
         const timeRemaining = state.answerTimes[playerId] || 1;
+        const timeTaken = state.baseTimeAllowed - timeRemaining;
         const pts = calculateScore(timeRemaining, state.baseTimeAllowed, state.jokerModeEnabled ? 2 : currentSlide.modifier || 1);
         
         if (updatedPlayers[playerId]) {
@@ -143,6 +146,14 @@ export default function HostPage() {
             ...updatedPlayers[playerId],
             score: (updatedPlayers[playerId].score || 0) + pts
           };
+
+          // Check for new all-time speedster record
+          if (!fastestThisTurn || timeTaken < fastestThisTurn.timeTaken) {
+            fastestThisTurn = {
+              playerName: updatedPlayers[playerId].name,
+              timeTaken: timeTaken
+            };
+          }
         }
       }
     });
@@ -152,6 +163,7 @@ export default function HostPage() {
       players: updatedPlayers,
       isQuestionActive: false,
       showResults: true,
+      fastestCorrectAnswer: fastestThisTurn || undefined
     });
   };
 

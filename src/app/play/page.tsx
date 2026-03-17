@@ -102,15 +102,20 @@ export default function PlayPage() {
   const handleAnswer = (index: number) => {
     if (!gameState?.isQuestionActive || hasAnswered || !gameState.questionStartTime) return;
     
-    // Performance.now() for high precision, but we need to compare with server-side questionStartTime
-    // questionStartTime is Date.now() on server.
     const now = Date.now();
-    const elapsed = now - gameState.questionStartTime;
-    const timeRemaining = Math.max(0, (gameState.baseTimeAllowed * 1000) - elapsed);
+    const elapsed = (now - gameState.questionStartTime) / 1000;
+    
+    // Safety check: block answer if time has expired (+ 0.5s grace)
+    if (elapsed > gameState.baseTimeAllowed + 0.5) {
+      console.log("[PLAY_ERROR] Time expired. Blocked.");
+      return;
+    }
+
+    const timeRemaining = Math.max(0, gameState.baseTimeAllowed - elapsed);
     
     triggerHaptic([50, 50, 50]);
     
-    if (roomCode) sendAnswer(roomCode, index, timeRemaining / 1000);
+    if (roomCode) sendAnswer(roomCode, index, timeRemaining);
     setHasAnswered(true);
   };
 
@@ -124,8 +129,11 @@ export default function PlayPage() {
   const handleLogout = () => {
     if (confirm("האם אתה בטוח שברצונך לצאת מהמשחק?")) {
       setHasJoined(false);
-      // We keep roomCodeInput/name in state for easier re-join if user stays on page
-      // But we can also clear them if we want a fresh start
+      localStorage.removeItem("click_master_room");
+      localStorage.removeItem("click_master_name");
+      setRoomCode(null);
+      setRoomCodeInput("");
+      setName("");
     }
   };
 

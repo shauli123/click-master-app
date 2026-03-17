@@ -33,13 +33,13 @@ export default function PodiumSlide({ players }: { players: Player[] }) {
       
       {/* Title */}
       <motion.div 
-        initial={{ y: -150, opacity: 0 }}
+        initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 2.5, type: "spring", stiffness: 50 }} 
-        className="absolute top-16 left-1/2 -translate-x-1/2 z-40 text-center"
+        className="absolute top-[12%] left-1/2 -translate-x-1/2 z-40 text-center w-full"
       >
-        <span className="text-2xl font-black text-amber-500/80 uppercase tracking-[0.5em] mb-2 block">מצעד הניצחון</span>
-        <h1 className="text-9xl md:text-[12rem] font-black text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-500 to-amber-800 drop-shadow-[0_0_50px_rgba(245,158,11,0.5)] leading-none italic">
+        <span className="text-xl md:text-2xl font-black text-amber-500/80 uppercase tracking-[0.5em] mb-2 block">מצעד הניצחון</span>
+        <h1 className="text-7xl md:text-9xl lg:text-[10rem] font-black text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-500 to-amber-800 drop-shadow-[0_0_40px_rgba(245,158,11,0.5)] leading-[0.8] italic">
           המנצחים!
         </h1>
       </motion.div>
@@ -61,14 +61,14 @@ export default function PodiumSlide({ players }: { players: Player[] }) {
               initial={{ scale: 0, y: 50, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               transition={{ delay: 1.8 }}
-              className="absolute -top-40 text-center w-full"
+              className="absolute -top-[30%] text-center w-full"
             >
-              <div className="text-zinc-500 font-black text-2xl mb-2 opacity-50">#2</div>
-              <h2 className="text-4xl font-black bg-zinc-100 text-zinc-900 px-8 py-3 rounded-2xl mb-3 shadow-[0_0_30px_rgba(255,255,255,0.2)] inline-block border-2 border-white">
+              <div className="text-zinc-500 font-black text-xl mb-1 opacity-50">#2</div>
+              <h2 className="text-2xl md:text-3xl font-black bg-zinc-100 text-zinc-900 px-6 py-2 rounded-2xl mb-2 shadow-xl inline-block border-2 border-white max-w-[90%] truncate">
                 {second.name}
               </h2>
-              <div className="text-3xl font-black text-zinc-300 tracking-tighter drop-shadow-md">
-                {Math.round(second.score).toLocaleString()} <span className="text-lg opacity-50 uppercase">PTS</span>
+              <div className="text-2xl font-black text-zinc-300 tracking-tighter shrink-0">
+                {Math.round(second.score).toLocaleString()} <span className="text-sm opacity-50 uppercase">PTS</span>
               </div>
             </motion.div>
             <div className="w-full h-full bg-gradient-to-b from-zinc-200 to-zinc-400 rounded-t-[3rem] border-t-4 border-white flex items-center justify-center shadow-2xl overflow-hidden relative">
@@ -88,23 +88,23 @@ export default function PodiumSlide({ players }: { players: Player[] }) {
           >
             <motion.div 
               initial={{ scale: 0, y: 50, opacity: 0 }}
-              animate={{ scale: 1.1, y: 0, opacity: 1 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
               transition={{ delay: 5.5, type: "spring", stiffness: 150 }}
-              className="absolute -top-[23rem] text-center w-full z-40"
+              className="absolute -top-[65%] text-center w-full z-40"
             >
               <motion.div 
-                animate={{ y: [0, -20, 0] }}
+                animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                className="text-9xl mb-6 drop-shadow-[0_0_40px_rgba(245,158,11,0.8)] filter brightness-125"
+                className="text-6xl md:text-8xl mb-4 drop-shadow-[0_0_30px_rgba(245,158,11,0.8)] filter brightness-125"
               >
                 👑
               </motion.div>
-              <h2 className="text-6xl font-black bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 text-zinc-950 px-12 py-5 rounded-[2.5rem] mb-4 shadow-[0_0_60px_rgba(245,158,11,0.6)] inline-block border-4 border-amber-200 relative overflow-hidden">
+              <h2 className="text-3xl md:text-5xl font-black bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 text-zinc-950 px-8 py-4 rounded-[2.5rem] mb-3 shadow-[0_0_50px_rgba(245,158,11,0.6)] inline-block border-4 border-amber-200 relative overflow-hidden max-w-[95%] truncate">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
                 {first.name}
               </h2>
-              <div className="text-5xl font-black text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] tracking-tighter">
-                {Math.round(first.score).toLocaleString()} <span className="text-2xl opacity-50 uppercase">PTS</span>
+              <div className="text-4xl font-black text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] tracking-tighter">
+                {Math.round(first.score).toLocaleString()} <span className="text-xl opacity-50 uppercase">PTS</span>
               </div>
             </motion.div>
             <div className="w-full h-full bg-gradient-to-b from-amber-400 via-amber-600 to-amber-800 rounded-t-[4rem] border-t-8 border-amber-200 flex items-center justify-center shadow-[0_0_80px_rgba(245,158,11,0.4)] relative overflow-hidden">
@@ -127,14 +127,14 @@ export default function PodiumSlide({ players }: { players: Player[] }) {
               initial={{ scale: 0, y: 50, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               transition={{ delay: 1.2 }}
-              className="absolute -top-36 text-center w-full"
+              className="absolute -top-[25%] text-center w-full"
             >
-              <div className="text-amber-700 font-black text-xl mb-1 opacity-50">#3</div>
-              <h2 className="text-3xl font-black bg-amber-800 text-amber-100 px-6 py-2 rounded-xl mb-2 shadow-lg inline-block border-2 border-amber-600">
+              <div className="text-amber-700 font-black text-lg mb-1 opacity-50">#3</div>
+              <h2 className="text-xl md:text-2xl font-black bg-amber-800 text-amber-100 px-5 py-2 rounded-xl mb-1 shadow-lg inline-block border-2 border-amber-600 max-w-[90%] truncate">
                 {third.name}
               </h2>
-              <div className="text-2xl font-black text-amber-600 tracking-tighter">
-                {Math.round(third.score).toLocaleString()} <span className="text-sm opacity-50 uppercase">PTS</span>
+              <div className="text-xl font-black text-amber-600 tracking-tighter shrink-0">
+                {Math.round(third.score).toLocaleString()} <span className="text-xs opacity-50 uppercase">PTS</span>
               </div>
             </motion.div>
             <div className="w-full h-full bg-gradient-to-b from-amber-700 to-amber-900 rounded-t-[2.5rem] border-t-4 border-amber-600 flex items-center justify-center shadow-2xl relative overflow-hidden">

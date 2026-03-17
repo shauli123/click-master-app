@@ -159,20 +159,22 @@ app.prepare().then(() => {
     // Host controls -> Override entire state efficiently
     socket.on("syncState", ({ roomCode, state }) => {
       console.log(`[${roomCode}] Host synced state. Slide ${state.currentSlideIndex}`);
-      // Security check: ensure the socket doing this actually has host privileges 
-      // Simplified for prototype: we trust the sender
       const currentRoom = activeRooms[roomCode];
+      if (!currentRoom) return;
+
+      const isSameSlide = state.currentSlideIndex === currentRoom.currentSlideIndex;
+
       activeRooms[roomCode] = {
         ...state,
         roomCode, 
         hostCode: currentRoom.hostCode,
         screenId: currentRoom.screenId,
         // PRESERVE the live data that players send directly to server
-        // unless the host explicitly changed the slide (new question)
-        answers: (state.currentSlideIndex === currentRoom.currentSlideIndex) 
+        // If it's the same slide, merge answers. If it's a new slide, take host's state (usually empty)
+        answers: isSameSlide 
           ? { ...currentRoom.answers, ...state.answers } 
           : state.answers,
-        answerTimes: (state.currentSlideIndex === currentRoom.currentSlideIndex) 
+        answerTimes: isSameSlide 
           ? { ...currentRoom.answerTimes, ...state.answerTimes } 
           : state.answerTimes,
         players: { ...currentRoom.players, ...state.players }

@@ -99,26 +99,43 @@ export default function QuestionSlide({
         </div>
       </div>
 
-      {/* Results Header: Speedsters */}
-      <AnimatePresence>
-        {showResults && speedsters.length > 0 && (
-          <motion.div 
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="flex justify-center items-center gap-3 mb-8 z-10 flex-wrap"
-          >
-            <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20">
-              🏆 בזק
-            </div>
-            {speedsters.map((s, i) => (
-              <div key={s.player.id} className={`px-4 py-1.5 rounded-full text-sm font-bold border flex items-center gap-2 ${i === 0 ? "bg-amber-400 text-black border-amber-200" : "bg-zinc-800 text-white border-zinc-700"}`}>
-                <span>{s.player.name}</span>
-                <span className="opacity-60 text-[10px] tabular-nums">({s.timeTaken.toFixed(2)}s)</span>
+      {/* Results Header: Speedsters & Joker Indicator */}
+      <div className="absolute top-[10%] left-0 right-0 flex flex-col items-center gap-4 z-20">
+        <AnimatePresence>
+          {gameState.jokerModeEnabled && (
+            <motion.div
+              initial={{ scale: 0, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0 }}
+              className="bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 px-8 py-3 rounded-2xl border-4 border-white shadow-[0_0_50px_rgba(192,38,211,0.6)] flex items-center gap-4"
+            >
+              <span className="text-4xl">🃏</span>
+              <span className="text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg">ניקוד כפול פעיל!</span>
+              <span className="text-4xl text-white animate-bounce">⚡</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showResults && speedsters.length > 0 && (
+            <motion.div 
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="flex justify-center items-center gap-3 z-10 flex-wrap"
+            >
+              <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20">
+                🏆 בזק
               </div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {speedsters.map((s, i) => (
+                <div key={s.player.id} className={`px-4 py-1.5 rounded-full text-sm font-bold border flex items-center gap-2 ${i === 0 ? "bg-amber-400 text-black border-amber-200" : "bg-zinc-800 text-white border-zinc-700"}`}>
+                  <span>{s.player.name}</span>
+                  <span className="opacity-60 text-[10px] tabular-nums">({s.timeTaken.toFixed(2)}s)</span>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Question Title */}
       <div className="flex-1 flex flex-col items-center justify-center px-12 z-10 my-6">

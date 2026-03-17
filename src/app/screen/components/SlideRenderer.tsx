@@ -38,6 +38,7 @@ export default function SlideRenderer({ gameState, players }: SlideRendererProps
           <LeaderboardSlide 
             key={`slide-${gameState.currentSlideIndex}`} 
             players={Object.values(players)} 
+            gameState={gameState}
           />
         );
       case "POLL":

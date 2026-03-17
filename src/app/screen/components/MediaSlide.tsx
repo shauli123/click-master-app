@@ -13,11 +13,12 @@ export default function MediaSlide({ slide }: { slide: SlideData }) {
   };
 
   const videoId = isYouTube && slide.mediaUrl ? getYouTubeId(slide.mediaUrl) : null;
+  const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}` : "";
 
   return (
     <div className="w-full h-full flex flex-col bg-black relative">
-      <div className="absolute top-8 w-full z-10 text-center pointer-events-none">
-        <h2 className="text-5xl font-bold text-white drop-shadow-lg bg-black/50 inline-block px-8 py-4 rounded-full backdrop-blur-md">
+      <div className="absolute top-8 w-full z-10 text-center pointer-events-none px-4">
+        <h2 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg bg-black/50 inline-block px-8 py-4 rounded-full backdrop-blur-md max-w-full truncate">
           {slide.content}
         </h2>
       </div>
@@ -26,8 +27,8 @@ export default function MediaSlide({ slide }: { slide: SlideData }) {
         {videoId ? (
           <iframe
             className="w-full h-full border-none"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&rel=0&showinfo=0`}
-            allow="autoplay; encrypted-media"
+            src={embedUrl}
+            allow="autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
           />
         ) : (

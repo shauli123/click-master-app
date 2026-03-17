@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Player } from "@/types";
+import { Player, GameState } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function LeaderboardSlide({ players }: { players: Player[] }) {
+export default function LeaderboardSlide({ players, gameState }: { players: Player[], gameState: GameState }) {
   // Sort players by score
   const sortedPlayers = useMemo(() => {
     return [...players].sort((a, b) => b.score - a.score).slice(0, 10); // Show top 10
@@ -19,13 +19,37 @@ export default function LeaderboardSlide({ players }: { players: Player[] }) {
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="flex flex-col items-center mb-16 z-10"
+        className="flex flex-col items-center mb-8 z-10"
       >
-        <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-fuchsia-400 drop-shadow-2xl">
+        <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-fuchsia-400 drop-shadow-2xl">
           המובילים
         </h1>
         <div className="h-1.5 w-48 bg-gradient-to-r from-blue-500 to-fuchsia-500 rounded-full mt-4 shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
       </motion.div>
+
+      {/* Speedster Highlight */}
+      {gameState.fastestCorrectAnswer && (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mb-10 z-10 flex flex-col items-center"
+        >
+          <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-xl border border-amber-500/30 px-8 py-4 rounded-[2rem] shadow-[0_0_40px_rgba(245,158,11,0.1)]">
+            <div className="text-4xl">⚡</div>
+            <div className="flex flex-col items-start border-r border-zinc-800 pr-6 mr-2">
+              <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">מהיר החידון</span>
+              <span className="text-3xl font-black text-white italic">
+                {gameState.fastestCorrectAnswer.playerName}
+              </span>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">שיא מהירות</span>
+              <span className="text-2xl font-black text-amber-400 tabular-nums">{gameState.fastestCorrectAnswer.timeTaken.toFixed(2)}s</span>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       <div className="w-full max-w-5xl flex flex-col gap-5 z-10">
         <AnimatePresence mode="popLayout">
