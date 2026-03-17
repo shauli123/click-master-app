@@ -138,14 +138,22 @@ app.prepare().then(() => {
 
     // Answer handling
     socket.on("answer", ({ roomCode, answer, timeRemaining }) => {
+      console.log(`[ANSWER_DEBUG] Room: ${roomCode}, Player: ${socket.id}, Answer: ${answer}, Time: ${timeRemaining}`);
       const room = activeRooms[roomCode];
-      if (!room || !room.isQuestionActive) return;
+      if (!room) {
+        console.log(`[ANSWER_ERROR] Room ${roomCode} not found`);
+        return;
+      }
+      if (!room.isQuestionActive) {
+        console.log(`[ANSWER_ERROR] Question not active in room ${roomCode}`);
+        return;
+      }
 
       room.answers[socket.id] = answer;
       room.answerTimes[socket.id] = timeRemaining;
 
-      console.log(`[${roomCode}] Player ${socket.id} answered: ${answer}`);
-      io.to(roomCode).emit("gameStateSynced", room); // Sync full state to show progress
+      console.log(`[${roomCode}] Player ${socket.id} (Name: ${room.players[socket.id]?.name}) answered: ${answer}`);
+      io.to(roomCode).emit("gameStateSynced", room);
     });
 
     // Host controls -> Override entire state efficiently
@@ -153,11 +161,21 @@ app.prepare().then(() => {
       console.log(`[${roomCode}] Host synced state. Slide ${state.currentSlideIndex}`);
       // Security check: ensure the socket doing this actually has host privileges 
       // Simplified for prototype: we trust the sender
+      const currentRoom = activeRooms[roomCode];
       activeRooms[roomCode] = {
         ...state,
-        roomCode, // prevent host from overwriting structural setup
-        hostCode: activeRooms[roomCode].hostCode,
-        screenId: activeRooms[roomCode].screenId,
+        roomCode, 
+        hostCode: currentRoom.hostCode,
+        screenId: currentRoom.screenId,
+        // PRESERVE the live data that players send directly to server
+        // unless the host explicitly changed the slide (new question)
+        answers: (state.currentSlideIndex === currentRoom.currentSlideIndex) 
+          ? { ...currentRoom.answers, ...state.answers } 
+          : state.answers,
+        answerTimes: (state.currentSlideIndex === currentRoom.currentSlideIndex) 
+          ? { ...currentRoom.answerTimes, ...state.answerTimes } 
+          : state.answerTimes,
+        players: { ...currentRoom.players, ...state.players }
       };
       
       socket.to(roomCode).emit("gameStateSynced", activeRooms[roomCode]);

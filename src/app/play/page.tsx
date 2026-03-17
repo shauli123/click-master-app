@@ -35,8 +35,23 @@ export default function PlayPage() {
   }, []);
 
   // Auto-rejoin on reconnect
+  const hasAttemptedRejoin = React.useRef(false);
   useEffect(() => {
-    if (isConnected && !hasJoined && roomCodeInput && name) {
+    const savedRoom = localStorage.getItem("click_master_room");
+    const savedName = localStorage.getItem("click_master_name");
+    
+    // Only auto-rejoin if the current inputs MATCH the saved session data
+    // and we haven't tried yet this time.
+    if (
+      isConnected && 
+      !hasJoined && 
+      roomCodeInput === savedRoom && 
+      name === savedName && 
+      roomCodeInput.length === 4 && 
+      name.length > 0 &&
+      !hasAttemptedRejoin.current
+    ) {
+      hasAttemptedRejoin.current = true;
       joinPlayer(roomCodeInput.trim(), name.trim(), (res) => {
         if (res.success) {
           setRoomCode(roomCodeInput.trim());
@@ -45,15 +60,16 @@ export default function PlayPage() {
       });
     }
   }, [isConnected, hasJoined, roomCodeInput, name, joinPlayer]);
+
   useEffect(() => {
-    if (gameState?.isQuestionActive) {
+    // Sync answered state with global game state
+    const currentAnswer = socket?.id && gameState?.answers ? gameState.answers[socket.id] : undefined;
+    if (currentAnswer !== undefined) {
+      setHasAnswered(true);
+    } else {
       setHasAnswered(false);
     }
-    // Also check if we already answered this in the gameState (reconnect scenario)
-    if (socket?.id && gameState?.answers?.[socket.id] !== undefined) {
-      setHasAnswered(true);
-    }
-  }, [gameState?.isQuestionActive, gameState?.currentSlideIndex, gameState?.answers, socket?.id]);
+  }, [gameState?.currentSlideIndex, gameState?.answers, socket?.id]);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();

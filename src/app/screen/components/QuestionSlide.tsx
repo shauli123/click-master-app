@@ -55,43 +55,43 @@ export default function QuestionSlide({
       <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-fuchsia-600/5 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Top Bar (Integrated Stats) */}
-      <div className="absolute top-8 right-8 flex items-center gap-6 z-20">
+      <div className="absolute top-8 right-8 flex items-center gap-4 z-20">
         {/* Visual Timer */}
-        <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-zinc-800 shadow-2xl">
-          <div className="relative w-10 h-10 flex items-center justify-center">
+        <div className="flex items-center gap-3 bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-zinc-800 shadow-2xl">
+          <div className="relative w-8 h-8 flex items-center justify-center">
             <svg className="w-full h-full -rotate-90">
-              <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-zinc-800" />
+              <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-zinc-800" />
               <motion.circle
-                cx="20"
-                cy="20"
-                r="18"
+                cx="16"
+                cy="16"
+                r="14"
                 stroke="currentColor"
                 strokeWidth="3"
                 fill="transparent"
-                strokeDasharray="113"
+                strokeDasharray="88"
                 initial={{ strokeDashoffset: 0 }}
-                animate={{ strokeDashoffset: gameState.isQuestionActive ? 113 : 0 }}
+                animate={{ strokeDashoffset: gameState.isQuestionActive ? 88 : 0 }}
                 transition={{ duration: gameState.isQuestionActive ? gameState.baseTimeAllowed : 0, ease: "linear" }}
                 className="text-fuchsia-500"
               />
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center font-black text-xs text-white">
+            <div className="absolute inset-0 flex items-center justify-center font-black text-[10px] text-white">
               <Timer countdown={gameState.baseTimeAllowed} isActive={gameState.isQuestionActive} />
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-0.5">זמן נותר</span>
-            <span className="text-lg font-black tabular-nums">שניות</span>
+            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-0.5">זמן נותר</span>
+            <span className="text-sm font-black tabular-nums">שניות</span>
           </div>
         </div>
 
         {/* Answers Count */}
-        <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-zinc-800 shadow-2xl">
+        <div className="flex items-center gap-3 bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-zinc-800 shadow-2xl">
           <div className="flex flex-col items-end">
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-0.5">תשובות</span>
+            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-0.5">תשובות</span>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-black text-white">{answeredCount}</span>
-              <span className="text-sm font-bold text-zinc-600">/ {totalPlayers}</span>
+              <span className="text-xl font-black text-white">{answeredCount}</span>
+              <span className="text-[10px] font-bold text-zinc-600">/ {totalPlayers}</span>
             </div>
           </div>
         </div>
@@ -118,14 +118,14 @@ export default function QuestionSlide({
       </AnimatePresence>
 
       {/* Question Title */}
-      <div className="flex-1 flex flex-col items-center justify-center px-12 z-10 my-12">
+      <div className="flex-1 flex flex-col items-center justify-center px-12 z-10 my-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-zinc-900/30 backdrop-blur-xl border border-zinc-800/50 p-12 md:p-16 rounded-[4rem] shadow-2xl max-w-6xl w-full text-center"
+          className="bg-zinc-900/30 backdrop-blur-xl border border-zinc-800/50 p-8 md:p-12 rounded-[3rem] shadow-2xl max-w-6xl w-full text-center"
         >
           <h2 className={`font-black text-zinc-100 leading-tight ${
-            slide.content.length > 50 ? "text-4xl md:text-6xl" : "text-6xl md:text-8xl"
+            slide.content.length > 50 ? "text-2xl md:text-3xl" : "text-3xl md:text-5xl"
           }`}>
             {slide.content}
           </h2>
@@ -151,7 +151,7 @@ export default function QuestionSlide({
       )}
 
       {/* Options Grid */}
-      <div className="grid grid-cols-2 gap-6 w-full max-w-7xl mx-auto z-10 pb-12">
+      <div className="grid grid-cols-2 gap-4 w-full max-w-7xl mx-auto z-10 pb-8">
         {options.map((opt, i) => {
           const isRevealed = i < gameState.revealedOptionsCount;
           const isCorrect = showResults && slide.correctOption === i;
@@ -163,7 +163,7 @@ export default function QuestionSlide({
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`relative flex items-center justify-center rounded-[2.5rem] overflow-hidden font-bold text-3xl shadow-2xl min-h-[120px] border-4 transition-all duration-500 ${
+                  className={`relative flex items-center justify-center rounded-[2rem] overflow-hidden font-bold text-xl shadow-2xl min-h-[70px] border-4 transition-all duration-500 ${
                     showResults 
                       ? isCorrect 
                         ? "border-green-400 scale-105 z-20 shadow-green-500/40" 
