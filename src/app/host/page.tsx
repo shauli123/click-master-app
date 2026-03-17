@@ -207,6 +207,12 @@ export default function HostPage() {
     });
   };
 
+  const remoteBgMusicControl = (action: 'play' | 'pause' | 'toggle', volume?: number) => {
+    if (socket && roomCode) {
+      socket.emit("bgMusicControl", { roomCode, action, volume });
+    }
+  };
+
   if (!isConnected) {
     return (
       <div className="flex-1 flex flex-col justify-center items-center h-full">
@@ -406,7 +412,7 @@ export default function HostPage() {
                 onClick={() => triggerSound("applause")}
                 className="bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-zinc-700 transition"
               >
-                <Volume2 className="text-blue-400" size={28} />
+                <Music className="text-blue-400" size={28} />
                 <span className="font-bold text-sm">מחיאות כפיים</span>
               </button>
 
@@ -414,8 +420,20 @@ export default function HostPage() {
                 onClick={() => triggerSound("buzzer")}
                 className="bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-zinc-700 transition"
               >
-                <Music className="text-red-400" size={28} />
+                <Volume2 className="text-red-400" size={28} />
                 <span className="font-bold text-sm">באזר</span>
+              </button>
+
+              {/* Background Music Remote Control */}
+              <button 
+                onClick={() => remoteBgMusicControl('toggle')}
+                className="col-span-2 py-4 rounded-xl bg-gradient-to-r from-fuchsia-600/20 to-indigo-600/20 border-fuchsia-500/30 text-fuchsia-300 font-bold flex items-center justify-center gap-3 active:scale-95 transition-all border shadow-lg"
+              >
+                <div className="relative">
+                   <Volume2 size={20} />
+                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-fuchsia-500 rounded-full animate-ping" />
+                </div>
+                <span>שליטה במוזיקת רקע (מקרן)</span>
               </button>
 
               {/* Show Standings Quick Action */}
