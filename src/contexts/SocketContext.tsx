@@ -11,11 +11,13 @@ interface SocketContextContextValue {
   isConnected: boolean;
   gameState: GameState | null;
   players: Record<string, Player>;
-  joinRoom: (room: string, role: "host" | "player" | "screen", name?: string, team?: string) => void;
-  syncGameState: (state: GameState, room: string) => void;
-  sendAnswer: (room: string, answerIndex: number, timeRemaining: number) => void;
-  changeSlide: (room: string, slideIndex: number) => void;
-  toggleJoker: (room: string, enabled: boolean) => void;
+  createRoom: (slides: any[], teams: string[], callback: (res: {roomCode: string, hostCode: string}) => void) => void;
+  joinPlayer: (roomCode: string, name: string, callback: (res: {success: boolean, error?: string}) => void) => void;
+  joinHost: (hostCode: string, callback: (res: {success: boolean, roomCode?: string, error?: string}) => void) => void;
+  syncGameState: (state: GameState, roomCode: string) => void;
+  sendAnswer: (roomCode: string, answerIndex: number, timeRemaining: number) => void;
+  changeSlide: (roomCode: string, slideIndex: number) => void;
+  toggleJoker: (roomCode: string, enabled: boolean) => void;
   errorMsg: string | null;
 }
 
@@ -73,24 +75,35 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const joinRoom = (room: string, role: "host" | "player" | "screen", name?: string, team?: string) => {
-    if (socket) socket.emit("join", { room, role, name, team });
+  const createRoom = (slides: any[], teams: string[], callback: (res: {roomCode: string, hostCode: string}) => void) => {
+    if (socket) socket.emit("createRoom", { slides, teams }, callback);
   };
 
-  const syncGameState = (state: GameState, room: string) => {
-    if (socket) socket.emit("syncState", { room, state });
+  const joinPlayer = (roomCode: string, name: string, callback: (res: {success: boolean, error?: string}) => void) => {
+    if (socket) socket.emit("joinPlayer", { roomCode, name }, callback);
   };
 
-  const sendAnswer = (room: string, answerIndex: number, timeRemaining: number) => {
-    if (socket) socket.emit("answer", { room, answer: answerIndex, timeRemaining });
+  const joinHost = (hostCode: string, callback: (res: {success: boolean, roomCode?: string, error?: string}) => void) => {
+    if (socket) socket.emit("joinHost", { hostCode }, (res) => {
+      // If host joins successfully, we want to know the roomCode, but the server will also send gameStateSynced
+      callback(res);
+    });
   };
 
-  const changeSlide = (room: string, slideIndex: number) => {
-    if (socket) socket.emit("changeSlide", { room, slideIndex });
+  const syncGameState = (state: GameState, roomCode: string) => {
+    if (socket) socket.emit("syncState", { roomCode, state });
   };
 
-  const toggleJoker = (room: string, enabled: boolean) => {
-    if (socket) socket.emit("toggleJoker", { room, enabled });
+  const sendAnswer = (roomCode: string, answerIndex: number, timeRemaining: number) => {
+    if (socket) socket.emit("answer", { roomCode, answer: answerIndex, timeRemaining });
+  };
+
+  const changeSlide = (roomCode: string, slideIndex: number) => {
+    if (socket) socket.emit("changeSlide", { roomCode, slideIndex });
+  };
+
+  const toggleJoker = (roomCode: string, enabled: boolean) => {
+    if (socket) socket.emit("toggleJoker", { roomCode, enabled });
   };
 
   return (
@@ -100,7 +113,9 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         isConnected,
         gameState,
         players,
-        joinRoom,
+        createRoom,
+        joinPlayer,
+        joinHost,
         syncGameState,
         sendAnswer,
         changeSlide,

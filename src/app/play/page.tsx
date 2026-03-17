@@ -5,12 +5,12 @@ import { useSocket } from "@/contexts/SocketContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PlayPage() {
-  const { isConnected, joinRoom, gameState, sendAnswer, errorMsg } = useSocket();
-  const roomCode = "MAIN"; // Simplified for now
+  const { isConnected, joinPlayer, gameState, sendAnswer, errorMsg } = useSocket();
+  const [roomCodeInput, setRoomCodeInput] = useState("");
+  const [roomCode, setRoomCode] = useState<string | null>(null);
 
   // Local State
   const [name, setName] = useState("");
-  const [team, setTeam] = useState("");
   const [hasJoined, setHasJoined] = useState(false);
   const [hasAnswered, setHasAnswered] = useState(false);
 
@@ -23,11 +23,17 @@ export default function PlayPage() {
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !roomCodeInput.trim()) return;
 
-    joinRoom(roomCode, "player", name.trim(), team);
-    setHasJoined(true);
-    triggerHaptic(50);
+    joinPlayer(roomCodeInput.trim(), name.trim(), (res) => {
+      if (res.success) {
+        setRoomCode(roomCodeInput.trim());
+        setHasJoined(true);
+        triggerHaptic(50);
+      } else {
+        alert(res.error || "שגיאה בהתחברות לחדר");
+      }
+    });
   };
 
   const triggerHaptic = (ms: number | number[]) => {
@@ -44,7 +50,7 @@ export default function PlayPage() {
     // In a real app we'd calculate time remaining properly, simplified here
     const timeRemaining = gameState.baseTimeAllowed || 10; 
     
-    sendAnswer(roomCode, index, timeRemaining);
+    if (roomCode) sendAnswer(roomCode, index, timeRemaining);
     setHasAnswered(true);
   };
 
@@ -71,10 +77,8 @@ export default function PlayPage() {
 
   // ONBOARDING VIEW
   if (!hasJoined) {
-    const availableTeams = gameState?.teams?.length ? gameState.teams : ["הנמרים", "הכרישים", "האריות"];
-    
     return (
-      <div className="flex-1 flex flex-col p-8 justify-center items-center">
+      <div className="flex-1 flex flex-col p-8 justify-center items-center bg-zinc-950">
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-12 text-center">
           <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-500 to-blue-500">
             CLICK-MASTER
@@ -82,49 +86,39 @@ export default function PlayPage() {
           <p className="text-zinc-400 mt-2 font-medium">ברוכים הבאים למשחק!</p>
         </motion.div>
 
-        <form onSubmit={handleJoin} className="w-full flex flex-col gap-6">
+        <form onSubmit={handleJoin} className="w-full flex flex-col gap-6 max-w-sm">
           <div>
-            <label className="block text-sm font-bold text-zinc-400 mb-2 px-2">שם מלא</label>
+            <label className="block text-sm font-bold text-zinc-500 mb-2 px-2 text-right">קוד חדר</label>
+            <input
+              type="text"
+              required
+              value={roomCodeInput}
+              onChange={(e) => setRoomCodeInput(e.target.value)}
+              placeholder="0000"
+              className="w-full bg-zinc-900 border-2 border-zinc-800 rounded-2xl px-6 py-4 text-3xl font-black tracking-[0.5em] text-center focus:outline-none focus:border-blue-500 transition-all text-white"
+              maxLength={4}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-zinc-500 mb-2 px-2 text-right">השם שלך</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="ישראל ישראלי"
-              className="w-full bg-zinc-800 border-2 border-zinc-700 rounded-2xl px-6 py-4 text-xl font-bold focus:outline-none focus:border-fuchsia-500 transition-colors text-right"
+              className="w-full bg-zinc-900 border-2 border-zinc-800 rounded-2xl px-6 py-4 text-xl font-bold focus:outline-none focus:border-fuchsia-500 transition-all text-white text-right"
               dir="rtl"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-bold text-zinc-400 mb-2 px-2">קבוצה (אופציונלי)</label>
-            <div className="grid grid-cols-1 gap-3">
-              {availableTeams.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => {
-                    setTeam(t);
-                    triggerHaptic(20);
-                  }}
-                  className={`py-4 rounded-2xl font-bold text-lg transition-all border-2 ${
-                    team === t 
-                      ? "bg-fuchsia-500/20 border-fuchsia-500 text-fuchsia-400 scale-[1.02]" 
-                      : "bg-zinc-800/50 border-zinc-700 text-zinc-400"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <button
             type="submit"
-            disabled={!name.trim()}
-            className="mt-6 w-full py-5 rounded-2xl bg-gradient-to-r from-blue-600 to-fuchsia-600 font-black text-2xl shadow-lg shadow-fuchsia-600/30 disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+            disabled={!name.trim() || !roomCodeInput.trim()}
+            className="mt-6 w-full py-5 rounded-2xl bg-gradient-to-r from-blue-600 to-fuchsia-600 font-black text-2xl shadow-xl shadow-fuchsia-900/40 disabled:opacity-50 disabled:grayscale transition-all active:scale-95 text-white"
           >
-            הכנס אותי למשחק!
+            התחבר למצעד!
           </button>
         </form>
       </div>

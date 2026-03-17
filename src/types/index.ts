@@ -19,9 +19,11 @@ export interface SlideData {
 
 export interface GameState {
   roomCode: string;
-  hostId: string | null;
+  hostCode: string;
+  hostConnected: boolean;
+  screenId: string;
   players: Record<string, Player>;
-  teams: string[]; // List of available teams from SETTINGS row
+  teams: string[];
   
   slides: SlideData[];
   currentSlideIndex: number;
@@ -36,23 +38,27 @@ export interface GameState {
 }
 
 export interface ClientToServerEvents {
-  join: (data: { room: string; role: 'host' | 'player' | 'screen'; name?: string; team?: string }) => void;
-  answer: (data: { room: string; answer: number; timeRemaining: number }) => void;
-  changeSlide: (data: { room: string; slideIndex: number }) => void;
-  toggleJoker: (data: { room: string; enabled: boolean }) => void;
-  playSound: (data: { room: string; sound: string }) => void;
-  syncState: (data: { room: string; state: GameState }) => void; // Host forcibly sets/syncs the entire state
-  startQuestion: (data: { room: string; baseTimeAllowed: number }) => void;
-  stopQuestion: (data: { room: string }) => void;
+  createRoom: (data: { slides: SlideData[], teams: string[] }, callback: (res: { roomCode: string, hostCode: string }) => void) => void;
+  joinPlayer: (data: { roomCode: string; name: string }, callback: (res: { success: boolean, error?: string }) => void) => void;
+  joinHost: (data: { hostCode: string }, callback: (res: { success: boolean, roomCode?: string, error?: string }) => void) => void;
+  
+  answer: (data: { roomCode: string; answer: number; timeRemaining: number }) => void;
+  changeSlide: (data: { roomCode: string; slideIndex: number }) => void;
+  toggleJoker: (data: { roomCode: string; enabled: boolean }) => void;
+  playSound: (data: { roomCode: string; sound: string }) => void;
+  syncState: (data: { roomCode: string; state: GameState }) => void; // Optional if host wants to override entirely
+  startQuestion: (data: { roomCode: string; baseTimeAllowed: number }) => void;
+  stopQuestion: (data: { roomCode: string }) => void;
 }
 
 export interface ServerToClientEvents {
   playerJoined: (player: Player) => void;
+  hostJoined: () => void;
   playerAnswered: (data: { playerId: string; answer: number; timeRemaining: number }) => void;
   slideChanged: (slideIndex: number) => void;
   jokerModeToggled: (enabled: boolean) => void;
   playSound: (sound: string) => void;
-  gameStateSynced: (state: GameState) => void; // When state is broadcast
+  gameStateSynced: (state: GameState) => void; 
   questionStarted: (baseTimeAllowed: number) => void;
   questionStopped: () => void;
   error: (msg: string) => void;

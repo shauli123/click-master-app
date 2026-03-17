@@ -4,12 +4,13 @@ import React, { useState, useEffect } from "react";
 import { useSocket } from "@/contexts/SocketContext";
 import { parseCSV } from "@/utils/csvParser";
 import { calculateScore } from "@/utils/scoreCalculator";
-import { GameState, SlideData, Player } from "@/types";
-import { Play, Pause, FastForward, Upload, Settings, Zap, Music, Volume2 } from "lucide-react";
+import { GameState, SlideData } from "@/types";
+import { Play, Pause, FastForward, Settings, Zap, Music, Volume2 } from "lucide-react";
 
 export default function HostPage() {
-  const { isConnected, joinRoom, socket, gameState, syncGameState, players, toggleJoker } = useSocket();
-  const roomCode = "MAIN";
+  const { isConnected, joinHost, socket, gameState, syncGameState, toggleJoker } = useSocket();
+  const [hostCodeInput, setHostCodeInput] = useState("");
+  const [roomCode, setRoomCode] = useState<string | null>(null);
 
   const [hasJoined, setHasJoined] = useState(false);
   const [localState, setLocalState] = useState<GameState | null>(null);
@@ -24,55 +25,26 @@ export default function HostPage() {
   // Maintain local state to act as Source of Truth as the Host
   const pushState = (newState: GameState) => {
     setLocalState(newState);
-    syncGameState(newState, roomCode);
-  };
-
-  const initHost = () => {
-    joinRoom(roomCode, "host");
-    setHasJoined(true);
-    
-    // If no state exists yet, init an empty one
-    if (!gameState) {
-      const init: GameState = {
-        roomCode,
-        hostId: "local-host",
-        players: {},
-        teams: ["הנמרים", "הכרישים", "האריות"],
-        slides: [],
-        currentSlideIndex: 0,
-        jokerModeEnabled: false,
-        isQuestionActive: false,
-        questionStartTime: null,
-        baseTimeAllowed: 15,
-        answers: {},
-        answerTimes: {},
-      };
-      pushState(init);
+    if (roomCode) {
+      syncGameState(newState, roomCode);
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !localState) return;
+  const initHost = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hostCodeInput.trim()) return;
 
-    const text = await file.text();
-    try {
-      const parsed = await parseCSV(text);
-      pushState({
-        ...localState,
-        teams: parsed.teams,
-        slides: parsed.slides,
-        currentSlideIndex: 0, // Reset to start
-        isQuestionActive: false,
-        answers: {},
-        answerTimes: {},
-      });
-      alert(`CSV Loaded successfully! ${parsed.slides.length} slides ready.`);
-    } catch (err) {
-      alert("Error parsing CSV");
-      console.error(err);
-    }
+    joinHost(hostCodeInput.trim(), (res) => {
+      if (res.success && res.roomCode) {
+        setRoomCode(res.roomCode);
+        setHasJoined(true);
+      } else {
+        alert(res.error || "Failed to join as Host");
+      }
+    });
   };
+
+  // handleFileUpload removed since Screen uploads the CSV now
 
   // Timeline Controls
   const nextSlide = () => {
@@ -139,23 +111,42 @@ export default function HostPage() {
     if (!localState) return;
     const newState = !localState.jokerModeEnabled;
     pushState({ ...localState, jokerModeEnabled: newState });
-    toggleJoker(roomCode, newState);
+    if (roomCode) toggleJoker(roomCode, newState);
   };
 
   const triggerSound = (soundType: string) => {
-    if (socket) socket.emit("playSound", { room: roomCode, sound: soundType });
+    if (socket && roomCode) socket.emit("playSound", { roomCode, sound: soundType });
   };
 
-  if (!isConnected || !hasJoined) {
+  if (!isConnected) {
     return (
       <div className="flex-1 flex flex-col justify-center items-center h-full">
         <h1 className="text-4xl font-black mb-8 text-fuchsia-500">HOST REMOTE</h1>
-        <button 
-          onClick={initHost}
-          className="px-12 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 font-bold text-2xl"
-        >
-          CONNECT REMOTE
-        </button>
+        <div className="animate-pulse font-bold text-zinc-500">CONNECTING TO SERVER...</div>
+      </div>
+    );
+  }
+
+  if (!hasJoined) {
+    return (
+      <div className="flex-1 flex flex-col justify-center items-center h-full p-6">
+        <h1 className="text-4xl font-black mb-8 text-amber-500">HOST LOGIN</h1>
+        <form onSubmit={initHost} className="w-full max-w-sm flex flex-col gap-4">
+          <input 
+            type="text" 
+            placeholder="Enter Host Code" 
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-center text-3xl font-black tracking-widest text-white focus:border-amber-500 outline-none"
+            value={hostCodeInput}
+            onChange={e => setHostCodeInput(e.target.value)}
+            maxLength={4}
+          />
+          <button 
+            type="submit"
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 font-bold text-2xl shadow-xl shadow-amber-900/20 active:scale-95 transition"
+          >
+            TAKE CONTROL
+          </button>
+        </form>
       </div>
     );
   }
@@ -181,12 +172,9 @@ export default function HostPage() {
             )}
           </div>
         </div>
-        
-        <label className="cursor-pointer bg-zinc-800 hover:bg-zinc-700 transition px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold text-zinc-300">
-          <Upload size={16} />
-          <span>Upload CSV</span>
-          <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
-        </label>
+        <div className="text-xs font-bold text-zinc-500 bg-zinc-950 px-3 py-1 rounded-full border border-zinc-800">
+          ROOM: <span className="text-white">{roomCode}</span>
+        </div>
       </div>
 
       {localState.slides.length === 0 ? (
