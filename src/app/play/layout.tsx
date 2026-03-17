@@ -1,9 +1,15 @@
 import React from "react";
-import { Metadata } from "next";
+import { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "Click-Master | Play",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0", // Prevent zooming on buttons
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function PlayLayout({

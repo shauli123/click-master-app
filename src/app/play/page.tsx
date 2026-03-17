@@ -1,3 +1,7 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useSocket } from "@/contexts/SocketContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogOut } from "lucide-react";
 
