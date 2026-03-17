@@ -35,7 +35,8 @@ export default function HostPage() {
           isQuestionActive: gameState.isQuestionActive, // Sync timer state
           showResults: gameState.showResults,
           jokerModeEnabled: gameState.jokerModeEnabled,
-          fastestCorrectAnswer: gameState.fastestCorrectAnswer
+          fastestCorrectAnswer: gameState.fastestCorrectAnswer,
+          showLeaderboardOverlay: gameState.showLeaderboardOverlay
         };
       });
     }
@@ -196,6 +197,14 @@ export default function HostPage() {
 
   const triggerSound = (soundType: string) => {
     if (socket && roomCode) socket.emit("playSound", { roomCode, sound: soundType });
+  };
+
+  const toggleLeaderboard = () => {
+    if (!localState) return;
+    pushState({
+      ...localState,
+      showLeaderboardOverlay: !localState.showLeaderboardOverlay
+    });
   };
 
   if (!isConnected) {
@@ -407,6 +416,19 @@ export default function HostPage() {
               >
                 <Music className="text-red-400" size={28} />
                 <span className="font-bold text-sm">באזר</span>
+              </button>
+
+              {/* Show Standings Quick Action */}
+              <button 
+                onClick={toggleLeaderboard}
+                className={`col-span-2 py-4 rounded-xl font-black text-lg transition-all active:scale-95 border-2 flex items-center justify-center gap-3 ${
+                  localState.showLeaderboardOverlay 
+                    ? "bg-amber-500 border-amber-300 text-black" 
+                    : "bg-zinc-800 border-zinc-700 text-zinc-300"
+                }`}
+              >
+                <FastForward fill="currentColor" size={20} className={localState.showLeaderboardOverlay ? "rotate-90" : ""} />
+                {localState.showLeaderboardOverlay ? "הסתר טבלת מובילים" : "הצג טבלת מובילים"}
               </button>
 
             </div>

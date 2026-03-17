@@ -55,6 +55,7 @@ app.prepare().then(() => {
         showResults: false,
         answers: {},
         answerTimes: {},
+        showLeaderboardOverlay: false,
       };
 
       activeRooms[roomCode] = newRoom;
@@ -186,6 +187,10 @@ app.prepare().then(() => {
     // Legacy passthroughs we can still use for specific triggers
     socket.on("playSound", ({ roomCode, sound }) => {
       socket.to(roomCode).emit("playSound", sound);
+    });
+
+    socket.on("bgMusicControl", ({ roomCode, action, volume }) => {
+      socket.to(roomCode).emit("bgMusicAction", { action, volume });
     });
 
     socket.on("disconnect", () => {

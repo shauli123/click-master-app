@@ -9,6 +9,17 @@ export default function PodiumSlide({ players }: { players: Player[] }) {
     return [...players].sort((a, b) => b.score - a.score).slice(0, 3);
   }, [players]);
 
+  const confettiParticles = useMemo(() => {
+    return Array.from({ length: 40 }).map((_, i) => ({
+      id: i,
+      x: Math.random() * 100 - 50,
+      y: Math.random() * -100 - 50,
+      rotate: Math.random() * 360,
+      color: ["#f59e0b", "#3b82f6", "#f472b6", "#10b981", "#ffffff"][Math.floor(Math.random() * 5)],
+      scale: Math.random() * 0.5 + 0.5,
+    }));
+  }, []);
+
   if (top3.length === 0) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-950 text-white">
@@ -26,17 +37,39 @@ export default function PodiumSlide({ players }: { players: Player[] }) {
     <div className="w-full h-full flex flex-col items-center justify-end bg-zinc-950 text-white relative overflow-hidden pb-12 px-8">
       {/* High-End Cinematic Background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,_var(--tw-gradient-stops))] from-blue-900/40 via-zinc-950 to-zinc-950" />
-      <div className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-1 h-full bg-gradient-to-b from-blue-500/0 via-blue-500/20 to-blue-500/0 blur-sm" />
-        <div className="absolute top-0 right-1/4 w-1 h-full bg-gradient-to-b from-fuchsia-500/0 via-fuchsia-500/20 to-fuchsia-500/0 blur-sm" />
-      </div>
       
+      {/* Confetti Explosion for 1st Place */}
+      {first && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+          {confettiParticles.map((p) => (
+            <motion.div
+              key={p.id}
+              initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
+              animate={{ 
+                x: p.x * 20, 
+                y: p.y * 10, 
+                opacity: 0, 
+                scale: p.scale,
+                rotate: p.rotate + 720 
+              }}
+              transition={{ 
+                delay: 5.5, // Sync with 1st place name reveal
+                duration: 2.5,
+                ease: "easeOut"
+              }}
+              className="absolute w-4 h-4 rounded-sm"
+              style={{ backgroundColor: p.color }}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Title */}
       <motion.div 
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 2.5, type: "spring", stiffness: 50 }} 
-        className="absolute top-[12%] left-1/2 -translate-x-1/2 z-40 text-center w-full"
+        className="absolute top-[12%] left-1/2 -translate-x-1/2 z-40 text-center w-full px-4"
       >
         <span className="text-xl md:text-2xl font-black text-amber-500/80 uppercase tracking-[0.5em] mb-2 block">מצעד הניצחון</span>
         <h1 className="text-7xl md:text-9xl lg:text-[10rem] font-black text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-500 to-amber-800 drop-shadow-[0_0_40px_rgba(245,158,11,0.5)] leading-[0.8] italic">

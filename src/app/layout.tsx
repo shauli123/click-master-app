@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SocketProvider } from "@/contexts/SocketContext";
+import { AudioProvider } from "@/contexts/AudioContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,7 +30,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-fuchsia-300 selection:text-fuchsia-900 bg-zinc-950 text-white min-h-screen`}
       >
         <SocketProvider>
-          {children}
+          <AudioProvider>
+            {children}
+          </AudioProvider>
         </SocketProvider>
       </body>
     </html>

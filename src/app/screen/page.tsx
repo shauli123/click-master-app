@@ -2,45 +2,22 @@
 
 import React, { useEffect, useState } from "react";
 import { useSocket } from "@/contexts/SocketContext";
+import { useAudio } from "@/contexts/AudioContext";
 import { motion, AnimatePresence } from "framer-motion";
 import SlideRenderer from "@/app/screen/components/SlideRenderer";
 import LobbySlide from "@/app/screen/components/LobbySlide";
 import { parseCSV } from "@/utils/csvParser";
-import { Upload, Key, Eye, EyeOff, QrCode } from "lucide-react";
+import { Upload, Key, Eye, EyeOff, QrCode, Volume2, VolumeX } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 
 export default function ScreenPage() {
   const { isConnected, createRoom, gameState, players, errorMsg, socket } = useSocket();
+  const { isPlayingBg, toggleBgMusic, playSFX } = useAudio();
   const [createdRoomCode, setCreatedRoomCode] = useState<string | null>(null);
   const [hostCode, setHostCode] = useState<string | null>(null);
   const [isSettingUp, setIsSettingUp] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isHostCodeVisible, setIsHostCodeVisible] = useState(false);
-
-  // Re-establish connection visual if lost
-  useEffect(() => {
-    if (isConnected && !isSettingUp && createdRoomCode) {
-      console.log("Connected & Room active:", createdRoomCode);
-    }
-  }, [isConnected, isSettingUp, createdRoomCode]);
-
-  useEffect(() => {
-    if (!socket) return;
-    
-    const handleSound = (sound: string) => {
-      try {
-        const audio = new Audio(`/${sound}.mp3`);
-        audio.play().catch(e => console.error("Audio play failed:", e));
-      } catch (e) {
-        console.error("Error playing sound", e);
-      }
-    };
-
-    socket.on("playSound", handleSound);
-    return () => {
-      socket.off("playSound", handleSound);
-    };
-  }, [socket]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -112,6 +89,17 @@ export default function ScreenPage() {
                   <span className="text-lg font-bold text-zinc-300">העלאת CSV ציר זמן</span>
                   <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
                 </label>
+
+                {/* Enable Sound Button */}
+                {!isPlayingBg && (
+                  <button 
+                    onClick={toggleBgMusic}
+                    className="mt-4 w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-fuchsia-600 text-white font-black flex items-center justify-center gap-3 animate-pulse shadow-xl shadow-fuchsia-900/20"
+                  >
+                    <Volume2 size={24} />
+                    <span>הפעל מוזיקת רקע</span>
+                  </button>
+                )}
               </div>
               <div className="flex flex-col items-center justify-center gap-4">
                 <div className="p-4 bg-white rounded-xl shadow-xl">
@@ -186,6 +174,17 @@ export default function ScreenPage() {
             סרקו<br/>להצטרפות
           </div>
         </div>
+
+        <div className="w-px h-10 bg-zinc-700 mx-2" />
+
+        {/* Audio Toggle */}
+        <button 
+          onClick={toggleBgMusic}
+          className={`p-3 rounded-xl transition-all ${isPlayingBg ? "bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-900/40" : "bg-zinc-800 text-zinc-500"}`}
+          title={isPlayingBg ? "השתקת מוזיקה" : "הפעלת מוזיקה"}
+        >
+          {isPlayingBg ? <Volume2 size={20} /> : <VolumeX size={20} />}
+        </button>
       </div>
 
       {/* Show Lobby if game hasn't started (slide 0 usually or waiting for host to advance) */}

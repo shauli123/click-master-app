@@ -78,14 +78,35 @@ export default function SlideRenderer({ gameState, players }: SlideRendererProps
       <AnimatePresence mode="wait">
         <motion.div
           key={gameState.currentSlideIndex}
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -100 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+          initial={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+          transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
           className="absolute inset-0"
         >
           {renderSlide(currentSlide)}
         </motion.div>
+      </AnimatePresence>
+
+      {/* Leaderboard Overlay */}
+      <AnimatePresence>
+        {gameState.showLeaderboardOverlay && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 100 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 100 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="absolute inset-0 z-[100] bg-zinc-950"
+          >
+             <LeaderboardSlide 
+                players={Object.values(players)} 
+                gameState={gameState}
+              />
+              <div className="absolute top-8 left-8 bg-amber-500 text-black px-4 py-2 rounded-full font-black text-sm animate-pulse shadow-lg z-[110]">
+                שידור חי: טבלת מובילים
+              </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

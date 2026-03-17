@@ -41,6 +41,7 @@ export interface GameState {
     playerName: string;
     timeTaken: number;
   };
+  showLeaderboardOverlay: boolean;
 }
 
 export interface ClientToServerEvents {
@@ -52,6 +53,7 @@ export interface ClientToServerEvents {
   changeSlide: (data: { roomCode: string; slideIndex: number }) => void;
   toggleJoker: (data: { roomCode: string; enabled: boolean }) => void;
   playSound: (data: { roomCode: string; sound: string }) => void;
+  bgMusicControl: (data: { roomCode: string; action: 'play' | 'pause' | 'toggle'; volume?: number }) => void;
   syncState: (data: { roomCode: string; state: GameState }) => void; // Optional if host wants to override entirely
   startQuestion: (data: { roomCode: string; baseTimeAllowed: number }) => void;
   stopQuestion: (data: { roomCode: string }) => void;
@@ -64,6 +66,7 @@ export interface ServerToClientEvents {
   slideChanged: (slideIndex: number) => void;
   jokerModeToggled: (enabled: boolean) => void;
   playSound: (sound: string) => void;
+  bgMusicAction: (data: { action: 'play' | 'pause' | 'toggle'; volume?: number }) => void;
   gameStateSynced: (state: GameState) => void; 
   questionStarted: (baseTimeAllowed: number) => void;
   questionStopped: () => void;
