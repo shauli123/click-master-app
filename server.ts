@@ -76,23 +76,39 @@ app.prepare().then(() => {
 
       socket.join(roomCode);
       
-      const newPlayer: Player = {
-        id: socket.id,
-        name,
-        team: "None", // Teams removed for now
-        joinedAt: Date.now(),
-        score: 0,
-      };
-
-      room.players[socket.id] = newPlayer;
-      console.log(`[${roomCode}] Player joined: ${name} (${socket.id})`);
+      // Check if player already exists by name
+      const existingPlayerId = Object.keys(room.players).find(id => room.players[id].name === name);
       
-      // Notify everyone in the room
-      socket.to(roomCode).emit("playerJoined", newPlayer);
+      if (existingPlayerId) {
+        console.log(`[${roomCode}] Player ${name} reconnected. Updating ID from ${existingPlayerId} to ${socket.id}`);
+        const player = room.players[existingPlayerId];
+        delete room.players[existingPlayerId];
+        player.id = socket.id;
+        room.players[socket.id] = player;
+        
+        // Also update answers and answerTimes if they exist
+        if (room.answers[existingPlayerId] !== undefined) {
+          room.answers[socket.id] = room.answers[existingPlayerId];
+          delete room.answers[existingPlayerId];
+        }
+        if (room.answerTimes[existingPlayerId] !== undefined) {
+          room.answerTimes[socket.id] = room.answerTimes[existingPlayerId];
+          delete room.answerTimes[existingPlayerId];
+        }
+      } else {
+        const newPlayer: Player = {
+          id: socket.id,
+          name,
+          team: "None",
+          joinedAt: Date.now(),
+          score: 0,
+        };
+        room.players[socket.id] = newPlayer;
+        console.log(`[${roomCode}] Player joined: ${name} (${socket.id})`);
+        socket.to(roomCode).emit("playerJoined", newPlayer);
+      }
       
-      // If host is connected, they will receive playerJoined, but let's sync state to screen just in case
       io.to(room.screenId).emit("gameStateSynced", room);
-      
       callback({ success: true });
     });
 

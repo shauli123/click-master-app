@@ -91,41 +91,41 @@ export default function ScreenPage() {
   // Initial Setup Phase
   if (isSettingUp) {
     return (
-      <div className="flex items-center justify-center w-full h-screen bg-zinc-950 text-white">
-        <div className="w-[800px] bg-zinc-900 p-12 rounded-3xl border border-zinc-800 shadow-2xl flex flex-col items-center">
-          <h1 className="text-5xl font-black mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-fuchsia-500">
+      <div className="flex items-center justify-center w-full min-h-screen bg-zinc-950 text-white p-4 overflow-y-auto">
+        <div className="w-full max-w-4xl bg-zinc-900 p-8 md:p-10 rounded-3xl border border-zinc-800 shadow-2xl flex flex-col items-center">
+          <h1 className="text-4xl md:text-5xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-fuchsia-500">
             הגדרת מקרן
           </h1>
           {isTransitioning ? (
-            <div className="flex flex-col items-center gap-6 py-10">
-              <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-              <p className="text-xl font-bold text-zinc-400">יוצר חדר פלאות...</p>
+            <div className="flex flex-col items-center gap-4 py-8">
+              <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+              <p className="text-lg font-bold text-zinc-400">יוצר חדר פלאות...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-12 w-full">
-              <div className="flex flex-col items-center justify-center border-r border-zinc-800 pr-12">
-                <p className="text-zinc-400 text-center mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+              <div className="flex flex-col items-center justify-center md:border-r border-zinc-800 md:pr-8">
+                <p className="text-zinc-400 text-center mb-6 text-sm">
                   העלה את קובץ ה-CSV של ציר הזמן ליצירת קוד חדר והמתן לחיבור המנחה.
                 </p>
-                <label className="cursor-pointer bg-zinc-800 hover:bg-zinc-700 transition px-8 py-12 rounded-2xl flex flex-col items-center gap-4 border-2 border-dashed border-zinc-600 hover:border-blue-500 w-full group">
-                  <Upload size={48} className="text-zinc-500 group-hover:text-blue-400 transition" />
-                  <span className="text-xl font-bold text-zinc-300">העלאת CSV ציר זמן</span>
+                <label className="cursor-pointer bg-zinc-800/50 hover:bg-zinc-800 transition px-6 py-8 rounded-2xl flex flex-col items-center gap-3 border-2 border-dashed border-zinc-700 hover:border-blue-500 w-full group">
+                  <Upload size={40} className="text-zinc-500 group-hover:text-blue-400 transition" />
+                  <span className="text-lg font-bold text-zinc-300">העלאת CSV ציר זמן</span>
                   <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
                 </label>
               </div>
-              <div className="flex flex-col items-center justify-center gap-6">
-                <div className="p-6 bg-white rounded-2xl shadow-xl">
+              <div className="flex flex-col items-center justify-center gap-4">
+                <div className="p-4 bg-white rounded-xl shadow-xl">
                   <QRCodeCanvas 
                     value={process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "")} 
-                    size={200}
+                    size={160}
                     level="H"
                   />
                 </div>
                 <div className="text-center">
-                  <p className="text-zinc-500 font-bold text-sm uppercase tracking-widest mb-2 flex items-center justify-center gap-2">
-                    <QrCode size={16} /> סרקו להצטרפות
+                  <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest mb-1 flex items-center justify-center gap-1">
+                    <QrCode size={12} /> סרקו להצטרפות
                   </p>
-                  <p className="text-zinc-400 font-mono text-xs">
+                  <p className="text-zinc-500 font-mono text-[10px] truncate max-w-[200px]">
                     {process.env.NEXT_PUBLIC_APP_URL || "קבלת כתובת..."}
                   </p>
                 </div>

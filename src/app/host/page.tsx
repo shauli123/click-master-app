@@ -185,7 +185,7 @@ export default function HostPage() {
   const nextSlideData: SlideData | undefined = localState.slides[localState.currentSlideIndex + 1];
 
   return (
-    <div className="fixed inset-0 flex flex-col pt-4 gap-6 select-none bg-zinc-900 text-zinc-100 overflow-hidden h-[100svh]">
+    <div className="relative min-h-[100svh] flex flex-col pt-4 gap-6 select-none bg-zinc-900 text-zinc-100 overflow-y-auto pb-12">
       
       {/* Header & Stats */}
       <div className="flex items-center justify-between border-b border-zinc-800 pb-4 px-2">
@@ -212,38 +212,33 @@ export default function HostPage() {
       ) : (
         <>
           {/* Main Action Area */}
-          <div className="flex-1 flex flex-col gap-4">
+          <div className="flex-1 flex flex-col gap-3 px-2">
             
-            {/* Current Slide Info Card */}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-inner relative overflow-hidden">
-              <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">פעילות נוכחית</div>
-              <h3 className="text-3xl font-black text-white leading-tight">
+            {/* Current Slide Info Card (Compact) */}
+            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 shadow-inner relative overflow-hidden">
+              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">פעילות נוכחית</div>
+              <h3 className="text-xl font-black text-white leading-tight truncate">
                 {currentSlide?.content || "ממתין..."}
               </h3>
-              <div className="mt-4 flex gap-2 flex-wrap text-left" dir="ltr">
-                <span className="px-3 py-1 bg-zinc-800 text-sm font-bold rounded-md border border-zinc-700">
+              <div className="mt-2 flex gap-2" dir="ltr">
+                <span className="px-2 py-0.5 bg-zinc-800 text-[10px] font-bold rounded border border-zinc-700">
                   {currentSlide?.type || "N/A"}
                 </span>
-                {currentSlide?.type === "QUESTION" && (
-                  <span className="px-3 py-1 bg-indigo-900 text-indigo-200 text-sm font-bold rounded-md border border-indigo-700">
-                    Mod: {currentSlide.modifier || 1}x
-                  </span>
-                )}
               </div>
             </div>
 
             {/* Giant Action Buttons Grid */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="flex-1 flex flex-col gap-3">
               {currentSlide?.type === "QUESTION" && !localState.showResults ? (
-                <div className="flex flex-col gap-4">
+                <div className="flex-1 flex flex-col gap-3">
                   {/* Step 1: Reveal Options */}
                   <button 
                     onClick={revealNextOption}
                     disabled={localState.revealedOptionsCount >= 4 || localState.isQuestionActive}
-                    className={`w-full py-6 rounded-2xl font-black text-xl transition-all active:scale-95 border-2 ${
+                    className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 border-2 ${
                       localState.revealedOptionsCount < 4 && !localState.isQuestionActive
-                        ? "bg-blue-600 border-blue-400 text-white shadow-blue-500/20" 
-                        : "bg-zinc-800 border-zinc-700 text-zinc-500 opacity-50 cursor-not-allowed"
+                        ? "bg-blue-600 border-blue-400 text-white" 
+                        : "bg-zinc-800 border-zinc-700 text-zinc-500 opacity-50 shadow-none pointer-events-none"
                     }`}
                   >
                     {localState.revealedOptionsCount < 4 
@@ -255,41 +250,41 @@ export default function HostPage() {
                   <button 
                     onClick={startQuestion}
                     disabled={localState.isQuestionActive || localState.revealedOptionsCount < 4}
-                    className={`w-full py-8 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95 shadow-lg border-2 ${
+                    className={`w-full py-6 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border-2 ${
                       !localState.isQuestionActive && localState.revealedOptionsCount >= 4
                         ? "bg-gradient-to-r from-emerald-500 to-green-500 border-emerald-400 text-black animate-pulse" 
-                        : "bg-zinc-800 border-zinc-700 text-zinc-500 opacity-50 cursor-not-allowed"
+                        : "bg-zinc-800 border-zinc-700 text-zinc-500 opacity-50 shadow-none pointer-events-none"
                     }`}
                   >
-                    <Play fill="currentColor" size={32} />
-                    <span className="text-2xl font-black">הפעל טיימר</span>
+                    <Play fill="currentColor" size={24} />
+                    <span className="text-xl font-black">הפעל טיימר</span>
                   </button>
 
                   {/* Step 3: Resolve / Show Results */}
                   {localState.isQuestionActive && (
                     <button 
                       onClick={showQuestionResults}
-                      className="w-full py-8 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 border-rose-400 text-white shadow-red-500/30 active:scale-95 flex flex-col items-center gap-2"
+                      className="w-full py-6 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 border-rose-400 text-white shadow-red-500/30 active:scale-95 flex flex-col items-center gap-1"
                     >
-                      <Pause fill="currentColor" size={32} />
-                      <span className="text-2xl font-black">סגור תשובות וחשוף תוצאות</span>
+                      <Pause fill="currentColor" size={24} />
+                      <span className="text-xl font-black">סגור תשובות</span>
                     </button>
                   )}
                 </div>
               ) : (
                 <button 
                   onClick={nextSlide}
-                  className="w-full py-12 rounded-3xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95 shadow-lg bg-gradient-to-r from-amber-500 to-yellow-500 shadow-amber-500/20"
+                  className="w-full flex-1 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95 shadow-lg bg-gradient-to-r from-amber-500 to-yellow-500 shadow-amber-500/20"
                 >
-                  <FastForward fill="currentColor" size={48} className="text-black/80 drop-shadow-sm" />
-                  <span className="text-3xl font-black text-black/90 drop-shadow-sm tracking-wide">
+                  <FastForward fill="currentColor" size={40} className="text-black/80" />
+                  <span className="text-2xl font-black text-black/90">
                     {localState.showResults ? "לשקופית הבאה" : "הבא בתור"}
                   </span>
                 </button>
               )}
             </div>
-            <div className="text-center text-zinc-500 text-sm font-medium">
-              הבא: <span className="font-bold text-zinc-400 whitespace-nowrap overflow-hidden text-ellipsis inline-block max-w-[200px] align-bottom">
+            <div className="text-center text-zinc-500 text-[10px] font-bold uppercase tracking-tight">
+              הבא: <span className="text-zinc-400 truncate max-w-[150px] inline-block align-bottom px-1">
                 {nextSlideData ? `${nextSlideData.type} - ${nextSlideData.content}` : "סוף"}
               </span>
             </div>

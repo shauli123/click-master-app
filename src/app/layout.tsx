@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className="h-full">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-fuchsia-300 selection:text-fuchsia-900 bg-zinc-950 text-white min-h-full h-full overflow-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-fuchsia-300 selection:text-fuchsia-900 bg-zinc-950 text-white min-h-screen`}
       >
         <SocketProvider>
           {children}

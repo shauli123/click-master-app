@@ -23,12 +23,12 @@ export default function LobbySlide({ players }: { players: Player[] }) {
       <motion.div 
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="z-10 text-center mb-16"
+        className="z-10 text-center mb-10"
       >
-        <h1 className="text-7xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-fuchsia-500">
+        <h1 className="text-5xl md:text-7xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-fuchsia-500">
           CLICK-MASTER
         </h1>
-        <p className="text-3xl font-medium text-zinc-400 mt-4">
+        <p className="text-xl md:text-2xl font-medium text-zinc-400 mt-2">
           סרקו את ה-QR CODE או היכנסו והזינו קוד
         </p>
       </motion.div>

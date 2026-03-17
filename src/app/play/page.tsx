@@ -14,12 +14,46 @@ export default function PlayPage() {
   const [hasJoined, setHasJoined] = useState(false);
   const [hasAnswered, setHasAnswered] = useState(false);
 
-  // Auto-reset hasAnswered when new question begins
+  // Load persistence and handle URL Join
+  useEffect(() => {
+    const savedRoom = localStorage.getItem("click_master_room");
+    const savedName = localStorage.getItem("click_master_name");
+    
+    // Check URL params for auto-join
+    const params = new URLSearchParams(window.location.search);
+    const urlRoom = params.get("room");
+
+    if (urlRoom) {
+      setRoomCodeInput(urlRoom);
+    } else if (savedRoom) {
+      setRoomCodeInput(savedRoom);
+    }
+
+    if (savedName) {
+      setName(savedName);
+    }
+  }, []);
+
+  // Auto-rejoin on reconnect
+  useEffect(() => {
+    if (isConnected && !hasJoined && roomCodeInput && name) {
+      joinPlayer(roomCodeInput.trim(), name.trim(), (res) => {
+        if (res.success) {
+          setRoomCode(roomCodeInput.trim());
+          setHasJoined(true);
+        }
+      });
+    }
+  }, [isConnected, hasJoined, roomCodeInput, name, joinPlayer]);
   useEffect(() => {
     if (gameState?.isQuestionActive) {
       setHasAnswered(false);
     }
-  }, [gameState?.isQuestionActive, gameState?.currentSlideIndex]);
+    // Also check if we already answered this in the gameState (reconnect scenario)
+    if (socket?.id && gameState?.answers?.[socket.id] !== undefined) {
+      setHasAnswered(true);
+    }
+  }, [gameState?.isQuestionActive, gameState?.currentSlideIndex, gameState?.answers, socket?.id]);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +63,8 @@ export default function PlayPage() {
       if (res.success) {
         setRoomCode(roomCodeInput.trim());
         setHasJoined(true);
+        localStorage.setItem("click_master_room", roomCodeInput.trim());
+        localStorage.setItem("click_master_name", name.trim());
         triggerHaptic(50);
       } else {
         alert(res.error || "שגיאה בהתחברות לחדר");
@@ -38,7 +74,11 @@ export default function PlayPage() {
 
   const triggerHaptic = (ms: number | number[]) => {
     if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(ms);
+      try {
+        window.navigator.vibrate(ms);
+      } catch (e) {
+        // ignore
+      }
     }
   };
 
@@ -81,7 +121,7 @@ export default function PlayPage() {
   // ONBOARDING VIEW
   if (!hasJoined) {
     return (
-      <div className="fixed inset-0 flex flex-col p-8 justify-center items-center bg-zinc-950 h-[100svh] overflow-hidden">
+      <div className="relative flex flex-col p-8 justify-center items-center bg-zinc-950 min-h-[100svh] overflow-y-auto">
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-12 text-center">
           <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-500 to-blue-500">
             CLICK-MASTER
@@ -130,20 +170,35 @@ export default function PlayPage() {
 
   // GAME CONTROLLER VIEW
   const slide = gameState?.slides?.[gameState.currentSlideIndex];
+  const myPlayer = socket?.id && gameState?.players ? gameState.players[socket.id] : null;
   const myAnswer = roomCode && socket?.id && gameState?.answers ? gameState.answers[socket.id] : null;
   const isCorrect = slide?.type === "QUESTION" && myAnswer !== null && myAnswer === slide.correctOption;
 
   if (slide?.type === "QUESTION" && gameState && !gameState.showResults) {
     return (
-      <div className="fixed inset-0 flex flex-col bg-zinc-950 h-[100svh] overflow-hidden">
-        <div className="text-center py-6 z-10 bg-zinc-900/50 backdrop-blur-md border-b border-zinc-800">
-          <h2 className="text-xl font-black text-white px-4 leading-tight">{slide.content}</h2>
-          <div className="mt-2 flex justify-center items-center gap-2">
-            {!gameState.isQuestionActive ? (
-              <span className="text-zinc-500 font-bold animate-pulse">ממתינים להפעלת הטיימר...</span>
-            ) : (
-              <span className="text-fuchsia-400 font-bold">בחרו עכשיו! ⚡</span>
-            )}
+      <div className="relative flex flex-col bg-zinc-950 min-h-[100svh] overflow-y-auto pb-8">
+        <div className="flex flex-col z-10 bg-zinc-900/50 backdrop-blur-md border-b border-zinc-800">
+          {/* Header Bar with Score */}
+          <div className="flex items-center justify-between px-6 py-2 border-b border-zinc-800/50">
+            <div className="flex flex-col items-start">
+              <span className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">הניקוד שלך</span>
+              <span className="text-xl font-black text-amber-400">{myPlayer?.score || 0}</span>
+            </div>
+            <div className="flex flex-col items-end text-zinc-500 font-bold text-[10px] uppercase">
+              <span>{name}</span>
+              <span>חדר: {roomCode}</span>
+            </div>
+          </div>
+
+          <div className="text-center py-4">
+            <h2 className="text-lg font-black text-white px-6 leading-snug">{slide.content}</h2>
+            <div className="mt-2 flex justify-center items-center gap-2">
+              {!gameState.isQuestionActive ? (
+                <span className="text-zinc-500 font-bold animate-pulse text-sm">ממתינים להפעלת הטיימר...</span>
+              ) : (
+                <span className="text-fuchsia-400 font-bold animate-bounce text-sm">בחרו עכשיו! ⚡</span>
+              )}
+            </div>
           </div>
         </div>
         
@@ -179,7 +234,7 @@ export default function PlayPage() {
   // RESULTS FEEDBACK VIEW
   if (gameState?.showResults) {
     return (
-      <div className="fixed inset-0 flex flex-col justify-center items-center bg-zinc-950 h-[100svh] overflow-hidden">
+      <div className="relative flex flex-col justify-center items-center bg-zinc-950 min-h-[100svh] overflow-y-auto p-4">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -201,7 +256,7 @@ export default function PlayPage() {
 
   // WAITING/LOBBY VIEW
   return (
-    <div className="fixed inset-0 flex flex-col justify-center items-center relative overflow-hidden bg-zinc-950 h-[100svh]">
+    <div className="relative flex flex-col justify-center items-center bg-zinc-950 min-h-[100svh] overflow-y-auto p-4">
       <motion.div
         animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.8, 0.3] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -209,11 +264,23 @@ export default function PlayPage() {
       />
       
       <div className="z-10 text-center flex flex-col items-center">
+        {/* Top Info in Waiting */}
+        <div className="absolute top-8 left-0 right-0 flex justify-center gap-12 text-center pointer-events-none">
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase font-black text-zinc-600 tracking-widest leading-none">ניקוד</span>
+            <span className="text-2xl font-black text-zinc-400">{myPlayer?.score || 0}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase font-black text-zinc-600 tracking-widest leading-none">שם</span>
+            <span className="text-2xl font-black text-zinc-400 truncate max-w-[120px]">{name}</span>
+          </div>
+        </div>
+
         {hasAnswered ? (
           <>
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-7xl mb-4">✅</motion.div>
-            <h2 className="text-3xl font-black text-fuchsia-400">התשובה התקבלה!</h2>
-            <p className="text-zinc-400 mt-2 font-medium">מתזמן את שאר המשתתפים...</p>
+            <h2 className="text-3xl font-black text-emerald-400">התשובה התקבלה!</h2>
+            <p className="text-zinc-400 mt-2 font-medium">המתן לתוצאות...</p>
           </>
         ) : (
           <>
@@ -224,7 +291,7 @@ export default function PlayPage() {
             >
               ⏳
             </motion.div>
-            <h2 className="text-3xl font-black text-white px-8 leading-tight">שב בנחת, ממתינים למנחה...</h2>
+            <h2 className="text-3xl font-black text-white px-8 leading-tight">ממתינים למנחה...</h2>
             {slide?.type && slide.type !== "QUESTION" && (
               <p className="text-fuchsia-400 font-bold mt-4 px-8 text-xl">
                 {slide.type === "MEDIA" ? "צפו במסך!" : slide.type === "POLL" ? "הצבעה תיפתח בקרוב" : "שים לב למסך הגדול"}
