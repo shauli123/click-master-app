@@ -94,12 +94,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const roomCode = Math.floor(1000 + Math.random() * 9000).toString();
     const hostCode = Math.floor(1000 + Math.random() * 9000).toString();
     
-    // Save to DB for discovery
-    const { error } = await supabase.from("rooms").insert({ room_code: roomCode, host_code: hostCode });
-    if (error) {
-       console.error("Error creating room in DB:", error);
-    }
-
     const initialGameState: GameState = {
       roomCode,
       hostCode,
@@ -119,6 +113,16 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       answerTimes: {},
       showLeaderboardOverlay: false,
     };
+
+    // Save to DB for discovery and persistence
+    const { error } = await supabase.from("rooms").insert({ 
+      room_code: roomCode, 
+      host_code: hostCode,
+      game_state: initialGameState 
+    });
+    if (error) {
+       console.error("Error creating room in DB:", error);
+    }
 
     setupChannel(roomCode);
     setGameState(initialGameState);
@@ -142,7 +146,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // Look up the room by hostCode
     const { data, error } = await supabase
       .from("rooms")
-      .select("room_code")
+      .select("room_code, game_state")
       .eq("host_code", hostCode)
       .maybeSingle();
 
@@ -152,18 +156,31 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     const roomCode = data.room_code;
+    const restoredState = data.game_state as GameState;
+    
     setupChannel(roomCode);
     setCurrentRoomCode(roomCode);
+    if (restoredState) setGameState(restoredState);
+    
     callback({ success: true, roomCode });
   };
 
-  const syncGameState = (state: GameState, roomCode: string) => {
+  const syncGameState = async (state: GameState, roomCode: string) => {
     if (channel) {
+      // Broadcast for live clients
       channel.send({
         type: "broadcast",
         event: "gameStateSynced",
         payload: state
       });
+
+      // Persist to DB for re-hydration
+      const { error } = await supabase
+        .from("rooms")
+        .update({ game_state: state })
+        .eq("room_code", roomCode);
+        
+      if (error) console.error("Error persisting state:", error);
     }
   };
 
