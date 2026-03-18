@@ -143,9 +143,12 @@ export default function PlayPage() {
       setHasJoined(false);
       localStorage.removeItem("click_master_room");
       localStorage.removeItem("click_master_name");
+      localStorage.removeItem("click_master_player_id");
       setRoomCode(null);
       setRoomCodeInput("");
       setName("");
+      setPlayerId(null);
+      hasAttemptedRejoin.current = true; // Prevent immediate auto-rejoin after manual logout
     }
   };
 
@@ -324,7 +327,12 @@ export default function PlayPage() {
           animate={{ y: 0, opacity: 1 }}
           className="z-10"
         >
-          <div className="text-fuchsia-500 font-black uppercase tracking-[0.3em] mb-4">המשחק הסתיים!</div>
+          <div className="text-fuchsia-500 font-black uppercase tracking-[0.3em] mb-4 flex items-center justify-center gap-2">
+            <span>המשחק הסתיים!</span>
+            <button onClick={handleLogout} className="text-zinc-600 hover:text-red-400 p-1 transition-colors">
+              <LogOut size={16} />
+            </button>
+          </div>
           <h1 className="text-6xl font-black text-white mb-8">כל הכבוד!</h1>
           
           <div className="bg-zinc-900/50 backdrop-blur-xl border-2 border-zinc-800 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
@@ -372,7 +380,7 @@ export default function PlayPage() {
       
       <div className="z-10 text-center flex flex-col items-center">
         {/* Top Info in Waiting */}
-        <div className="absolute top-8 left-0 right-0 flex justify-center gap-12 text-center pointer-events-none">
+        <div className="absolute top-8 left-0 right-0 flex justify-center gap-12 text-center pointer-events-auto z-20">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase font-black text-zinc-600 tracking-widest leading-none">ניקוד</span>
             <span className="text-2xl font-black text-zinc-400">{myPlayer?.score || 0}</span>
