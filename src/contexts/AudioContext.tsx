@@ -41,7 +41,7 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     // Actually I'll just load what I found in public/
-    const availableSounds = ["applause", "buzzer", "applause1", "buzzer1"];
+    const availableSounds = ["applause", "buzzer", "correct"];
     availableSounds.forEach(name => {
       sfxRefs.current[name] = new Audio(`/${name}.mp3`);
     });
@@ -53,16 +53,15 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (!socket) return;
-
-    const handlePlaySound = (soundName: string) => {
-      console.log("Playing sound from socket:", soundName);
-      playSFX(soundName);
+    const handlePlaySoundEvent = (e: any) => {
+      const soundName = e.detail.sound; // The payload is { roomCode, sound }
+      console.log("Playing sound from CustomEvent:", soundName);
+      if (soundName) playSFX(soundName);
     };
 
-    socket.on("playSound", handlePlaySound);
-
-    socket.on("bgMusicAction", ({ action, volume }) => {
+    const handleBgMusicEvent = (e: any) => {
+      const { action, volume } = e.detail;
+      console.log("BG Music action from CustomEvent:", action);
       if (!bgMusicRef.current) return;
       
       if (action === 'play') {
@@ -78,13 +77,16 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
       if (volume !== undefined) {
         bgMusicRef.current.volume = volume;
       }
-    });
+    };
+
+    window.addEventListener("playSound", handlePlaySoundEvent);
+    window.addEventListener("bgMusicAction", handleBgMusicEvent);
 
     return () => {
-      socket.off("playSound", handlePlaySound);
-      socket.off("bgMusicAction");
+      window.removeEventListener("playSound", handlePlaySoundEvent);
+      window.removeEventListener("bgMusicAction", handleBgMusicEvent);
     };
-  }, [socket]);
+  }, []);
 
   const toggleBgMusic = () => {
     if (!bgMusicRef.current) return;

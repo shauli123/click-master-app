@@ -11,13 +11,13 @@ import { Upload, Key, Eye, EyeOff, QrCode, Volume2, VolumeX } from "lucide-react
 import { QRCodeCanvas } from "qrcode.react";
 
 export default function ScreenPage() {
-  const { isConnected, createRoom, gameState, players, errorMsg, socket } = useSocket();
-  const { isPlayingBg, toggleBgMusic, playSFX } = useAudio();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isHostCodeVisible, setIsHostCodeVisible] = useState(false);
   const [createdRoomCode, setCreatedRoomCode] = useState<string | null>(null);
   const [hostCode, setHostCode] = useState<string | null>(null);
   const [isSettingUp, setIsSettingUp] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isHostCodeVisible, setIsHostCodeVisible] = useState(false);
+  const { isPlayingBg, toggleBgMusic, playSFX } = useAudio();
+  const { isConnected, createRoom, gameState, players, errorMsg, socket, syncGameState } = useSocket();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -54,6 +54,58 @@ export default function ScreenPage() {
       setIsTransitioning(false);
     }
   };
+
+  useEffect(() => {
+    if (!socket || !gameState || !createdRoomCode) return;
+
+    const channel = socket; // In our refactor, 'socket' is the supabase channel
+
+    const handlePlayerJoin = (payload: any) => {
+      const { name, id } = payload.payload;
+      console.log(`[REALTIME] Player joining project: ${name} (${id})`);
+      
+      const newPlayer = {
+        id,
+        name,
+        team: "None",
+        joinedAt: Date.now(),
+        score: 0
+      };
+
+      const updatedGameState = {
+        ...gameState,
+        players: { ...gameState.players, [id]: newPlayer }
+      };
+      
+      syncGameState(updatedGameState, createdRoomCode);
+    };
+
+    const handleAnswer = (payload: any) => {
+      // payload.id is the sender's id (which we need for player lookup)
+      // For simplicity, we assume players include their ID in the payload or we use the presence ID
+      const { answer, timeRemaining } = payload.payload;
+      const playerId = payload.id; // Or we can rely on something else
+
+      console.log(`[REALTIME] Answer received from ${playerId}: ${answer}`);
+
+      if (!gameState.isQuestionActive) return;
+
+      const updatedGameState = {
+        ...gameState,
+        answers: { ...gameState.answers, [playerId]: answer },
+        answerTimes: { ...gameState.answerTimes, [playerId]: timeRemaining }
+      };
+
+      syncGameState(updatedGameState, createdRoomCode);
+    };
+
+    channel.on("broadcast", { event: "playerJoined" }, handlePlayerJoin);
+    channel.on("broadcast", { event: "answer" }, handleAnswer);
+
+    return () => {
+      // Listeners are specific to this component instance
+    };
+  }, [socket, gameState, createdRoomCode]);
 
   if (!isConnected) {
     return (
