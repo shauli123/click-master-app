@@ -103,16 +103,19 @@ export default function HostPage() {
       const isQuestion = nextSlideData.type === "QUESTION";
       const isPoll = nextSlideData.type === "POLL";
       
+      // Auto-enable joker if the next slide has a modifier marked in CSV
+      const shouldAutoJoker = isQuestion && nextSlideData.modifier && nextSlideData.modifier > 1;
+
       pushState({
         ...localState,
         currentSlideIndex: nextIndex,
-        isQuestionActive: false, // Initially false for questions/polls
+        isQuestionActive: false,
         questionStartTime: null,
-        revealedOptionsCount: isPoll ? 4 : 0, // Auto-reveal all for polls
+        revealedOptionsCount: isPoll ? 4 : 0,
         showResults: false,
         answers: {},
         answerTimes: {},
-        jokerModeEnabled: false,
+        jokerModeEnabled: !!shouldAutoJoker,
       });
     }
   };
@@ -156,11 +159,14 @@ export default function HostPage() {
     const updatedPlayers = { ...state.players };
     let fastestThisTurn = state.fastestCorrectAnswer || null;
     
+    // Determine dynamic multiplier (Manual Joker toggle is x2, CSV modifier can be higher)
+    const activeModifier = Math.max(state.jokerModeEnabled ? 2 : 1, currentSlide.modifier || 1);
+
     Object.entries(state.answers).forEach(([playerId, selectedOption]) => {
       if (selectedOption === currentSlide.correctOption) {
-        const timeRemaining = state.answerTimes[playerId] || 1;
+        const timeRemaining = state.answerTimes[playerId] || 0.1;
         const timeTaken = state.baseTimeAllowed - timeRemaining;
-        const pts = calculateScore(timeRemaining, state.baseTimeAllowed, state.jokerModeEnabled ? 2 : currentSlide.modifier || 1);
+        const pts = calculateScore(timeRemaining, state.baseTimeAllowed, activeModifier);
         
         if (updatedPlayers[playerId]) {
           updatedPlayers[playerId] = {

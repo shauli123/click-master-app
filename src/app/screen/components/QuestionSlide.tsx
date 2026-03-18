@@ -104,14 +104,36 @@ export default function QuestionSlide({
         <AnimatePresence>
           {gameState.jokerModeEnabled && (
             <motion.div
-              initial={{ scale: 0, rotate: -10 }}
-              animate={{ scale: 1, rotate: 0 }}
+              initial={{ scale: 0, rotate: -15 }}
+              animate={{ 
+                scale: [1, 1.1, 1], 
+                rotate: [0, 5, -5, 0],
+                boxShadow: [
+                  "0 0 30px rgba(192,38,211,0.4)",
+                  "0 0 60px rgba(192,38,211,0.8)",
+                  "0 0 30px rgba(192,38,211,0.4)"
+                ]
+              }}
+              transition={{ 
+                scale: { duration: 2, repeat: Infinity },
+                rotate: { duration: 4, repeat: Infinity },
+                boxShadow: { duration: 2, repeat: Infinity }
+              }}
               exit={{ scale: 0 }}
-              className="bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 px-8 py-3 rounded-2xl border-4 border-white shadow-[0_0_50px_rgba(192,38,211,0.6)] flex items-center gap-4"
+              className="bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 px-10 py-4 rounded-3xl border-4 border-white shadow-2xl flex flex-col items-center gap-1 z-50 overflow-hidden relative"
             >
-              <span className="text-4xl">🃏</span>
-              <span className="text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg">ניקוד כפול פעיל!</span>
-              <span className="text-4xl text-white animate-bounce">⚡</span>
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
+              <div className="flex items-center gap-4 relative z-10">
+                <span className="text-5xl drop-shadow-md">🃏</span>
+                <div className="flex flex-col items-center">
+                  <span className="text-lg font-black text-white/80 uppercase tracking-[0.2em] leading-none mb-1">בונוס מיוחד</span>
+                  <span className="text-4xl font-extrabold text-white italic tracking-tighter uppercase drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+                    {slide.modifier && slide.modifier > 2 ? `ניקוד פי ${slide.modifier}!` : "ניקוד כפול!"}
+                  </span>
+                </div>
+                <span className="text-5xl text-white animate-bounce drop-shadow-md">⚡</span>
+              </div>
+              <div className="text-[10px] font-black text-white/60 tracking-[0.5em] uppercase mt-1 relative z-10">MULTIPLIER ACTIVE</div>
             </motion.div>
           )}
         </AnimatePresence>
