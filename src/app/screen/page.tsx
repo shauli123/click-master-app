@@ -55,13 +55,22 @@ export default function ScreenPage() {
     }
   };
 
+  // Keep a ref for the latest gameState to use in listeners without re-subscribing
+  const gameStateRef = React.useRef(gameState);
   useEffect(() => {
-    if (!socket || !gameState || !createdRoomCode) return;
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
-    const channel = socket; // In our refactor, 'socket' is the supabase channel
+  useEffect(() => {
+    if (!socket || !createdRoomCode) return;
+
+    const channel = socket; 
 
     const handlePlayerJoin = (payload: any) => {
       const { name, id } = payload.payload;
+      const currentState = gameStateRef.current;
+      if (!currentState) return;
+
       console.log(`[REALTIME] Player joining project: ${name} (${id})`);
       
       const newPlayer = {
@@ -73,27 +82,24 @@ export default function ScreenPage() {
       };
 
       const updatedGameState = {
-        ...gameState,
-        players: { ...gameState.players, [id]: newPlayer }
+        ...currentState,
+        players: { ...currentState.players, [id]: newPlayer }
       };
       
       syncGameState(updatedGameState, createdRoomCode);
     };
 
     const handleAnswer = (payload: any) => {
-      // payload.id is the sender's id (which we need for player lookup)
-      // For simplicity, we assume players include their ID in the payload or we use the presence ID
-      const { answer, timeRemaining } = payload.payload;
-      const playerId = payload.id; // Or we can rely on something else
+      const { playerId, answer, timeRemaining } = payload.payload;
+      const currentState = gameStateRef.current;
+      if (!currentState || !currentState.isQuestionActive) return;
 
       console.log(`[REALTIME] Answer received from ${playerId}: ${answer}`);
 
-      if (!gameState.isQuestionActive) return;
-
       const updatedGameState = {
-        ...gameState,
-        answers: { ...gameState.answers, [playerId]: answer },
-        answerTimes: { ...gameState.answerTimes, [playerId]: timeRemaining }
+        ...currentState,
+        answers: { ...currentState.answers, [playerId]: answer },
+        answerTimes: { ...currentState.answerTimes, [playerId]: timeRemaining }
       };
 
       syncGameState(updatedGameState, createdRoomCode);
@@ -103,9 +109,10 @@ export default function ScreenPage() {
     channel.on("broadcast", { event: "answer" }, handleAnswer);
 
     return () => {
-      // Listeners are specific to this component instance
+      // In Supabase, if we want to remove specific listeners we need to be careful,
+      // but usually unsubscribe handles it. For now we just stay subscribed.
     };
-  }, [socket, gameState, createdRoomCode]);
+  }, [socket, createdRoomCode]); // removed gameState
 
   if (!isConnected) {
     return (

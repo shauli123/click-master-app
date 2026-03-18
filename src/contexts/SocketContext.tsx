@@ -11,10 +11,10 @@ interface SocketContextContextValue {
   gameState: GameState | null;
   players: Record<string, Player>;
   createRoom: (slides: any[], teams: string[], callback: (res: {roomCode: string, hostCode: string}) => void) => void;
-  joinPlayer: (roomCode: string, name: string, callback: (res: {success: boolean, error?: string}) => void) => void;
+  joinPlayer: (roomCode: string, name: string, callback: (res: {success: boolean, playerId?: string, error?: string}) => void) => void;
   joinHost: (hostCode: string, callback: (res: {success: boolean, roomCode?: string, error?: string}) => void) => void;
   syncGameState: (state: GameState, roomCode: string) => void;
-  sendAnswer: (roomCode: string, answerIndex: number, timeRemaining: number) => void;
+  sendAnswer: (roomCode: string, playerId: string, answerIndex: number, timeRemaining: number) => void;
   changeSlide: (roomCode: string, slideIndex: number) => void;
   toggleJoker: (roomCode: string, enabled: boolean) => void;
   errorMsg: string | null;
@@ -129,17 +129,18 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     callback({ roomCode, hostCode });
   };
 
-  const joinPlayer = (roomCode: string, name: string, callback: (res: {success: boolean, error?: string}) => void) => {
+  const joinPlayer = (roomCode: string, name: string, callback: (res: {success: boolean, playerId?: string, error?: string}) => void) => {
     const chan = setupChannel(roomCode);
-    
+    const playerId = Math.random().toString(36).substring(7);
+
     // Players send a join request via broadcast
     chan.send({
       type: "broadcast",
       event: "playerJoined",
-      payload: { name, id: Math.random().toString(36).substring(7) }
+      payload: { name, id: playerId }
     });
 
-    callback({ success: true });
+    callback({ success: true, playerId });
   };
 
   const joinHost = async (hostCode: string, callback: (res: {success: boolean, roomCode?: string, error?: string}) => void) => {
@@ -184,12 +185,12 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const sendAnswer = (roomCode: string, answerIndex: number, timeRemaining: number) => {
+  const sendAnswer = (roomCode: string, playerId: string, answerIndex: number, timeRemaining: number) => {
     if (channel) {
       channel.send({
         type: "broadcast",
         event: "answer",
-        payload: { answer: answerIndex, timeRemaining }
+        payload: { playerId, answer: answerIndex, timeRemaining }
       });
     }
   };

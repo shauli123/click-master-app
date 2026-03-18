@@ -12,6 +12,7 @@ export default function PlayPage() {
 
   // Local State
   const [name, setName] = useState("");
+  const [playerId, setPlayerId] = useState<string | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
   const [hasAnswered, setHasAnswered] = useState(false);
 
@@ -19,6 +20,7 @@ export default function PlayPage() {
   useEffect(() => {
     const savedRoom = localStorage.getItem("click_master_room");
     const savedName = localStorage.getItem("click_master_name");
+    const savedPlayerId = localStorage.getItem("click_master_player_id");
     
     // Check URL params for auto-join
     const params = new URLSearchParams(window.location.search);
@@ -30,9 +32,8 @@ export default function PlayPage() {
       setRoomCodeInput(savedRoom);
     }
 
-    if (savedName) {
-      setName(savedName);
-    }
+    if (savedName) setName(savedName);
+    if (savedPlayerId) setPlayerId(savedPlayerId);
   }, []);
 
   // Auto-rejoin on reconnect
@@ -40,9 +41,8 @@ export default function PlayPage() {
   useEffect(() => {
     const savedRoom = localStorage.getItem("click_master_room");
     const savedName = localStorage.getItem("click_master_name");
+    const savedPlayerId = localStorage.getItem("click_master_player_id");
     
-    // Only auto-rejoin if the current inputs MATCH the saved session data
-    // and we haven't tried yet this time.
     if (
       isConnected && 
       !hasJoined && 
@@ -57,6 +57,12 @@ export default function PlayPage() {
         if (res.success) {
           setRoomCode(roomCodeInput.trim());
           setHasJoined(true);
+          if (res.playerId) {
+            setPlayerId(res.playerId);
+            localStorage.setItem("click_master_player_id", res.playerId);
+          } else if (savedPlayerId) {
+            setPlayerId(savedPlayerId);
+          }
         }
       });
     }
@@ -64,24 +70,30 @@ export default function PlayPage() {
 
   useEffect(() => {
     // Sync answered state with global game state
-    const currentAnswer = socket?.id && gameState?.answers ? gameState.answers[socket.id] : undefined;
+    if (!playerId || !gameState?.answers) {
+      setHasAnswered(false);
+      return;
+    }
+    const currentAnswer = gameState.answers[playerId];
     if (currentAnswer !== undefined) {
       setHasAnswered(true);
     } else {
       setHasAnswered(false);
     }
-  }, [gameState?.currentSlideIndex, gameState?.answers, socket?.id]);
+  }, [gameState?.currentSlideIndex, gameState?.answers, playerId]);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !roomCodeInput.trim()) return;
 
     joinPlayer(roomCodeInput.trim(), name.trim(), (res) => {
-      if (res.success) {
+      if (res.success && res.playerId) {
         setRoomCode(roomCodeInput.trim());
         setHasJoined(true);
+        setPlayerId(res.playerId);
         localStorage.setItem("click_master_room", roomCodeInput.trim());
         localStorage.setItem("click_master_name", name.trim());
+        localStorage.setItem("click_master_player_id", res.playerId);
         triggerHaptic(50);
       } else {
         alert(res.error || "שגיאה בהתחברות לחדר");
@@ -100,7 +112,7 @@ export default function PlayPage() {
   };
 
   const handleAnswer = (index: number) => {
-    if (!gameState?.isQuestionActive || hasAnswered || !gameState.questionStartTime) return;
+    if (!gameState?.isQuestionActive || hasAnswered || !gameState.questionStartTime || !playerId) return;
     
     const now = Date.now();
     const elapsed = (now - gameState.questionStartTime) / 1000;
@@ -115,7 +127,7 @@ export default function PlayPage() {
     
     triggerHaptic([50, 50, 50]);
     
-    if (roomCode) sendAnswer(roomCode, index, timeRemaining);
+    if (roomCode) sendAnswer(roomCode, playerId, index, timeRemaining);
     setHasAnswered(true);
   };
 
@@ -203,8 +215,8 @@ export default function PlayPage() {
 
   // GAME CONTROLLER VIEW
   const slide = gameState?.slides?.[gameState.currentSlideIndex];
-  const myPlayer = socket?.id && gameState?.players ? gameState.players[socket.id] : null;
-  const myAnswer = roomCode && socket?.id && gameState?.answers ? gameState.answers[socket.id] : null;
+  const myPlayer = playerId && gameState?.players ? gameState.players[playerId] : null;
+  const myAnswer = roomCode && playerId && gameState?.answers ? gameState.answers[playerId] : null;
   const isCorrect = slide?.type === "QUESTION" && myAnswer !== null && myAnswer === slide.correctOption;
 
   if ((slide?.type === "QUESTION" || slide?.type === "POLL") && gameState && !gameState.showResults) {
@@ -302,7 +314,7 @@ export default function PlayPage() {
   // FINAL RANK / PODIUM VIEW
   if (slide?.type === "PODIUM" && gameState) {
     const playersArr = Object.values(gameState.players).sort((a, b) => b.score - a.score);
-    const myRank = playersArr.findIndex((p) => p.id === socket?.id) + 1;
+    const myRank = playersArr.findIndex((p) => p.id === playerId) + 1;
     const totalPlayers = playersArr.length;
 
     return (
