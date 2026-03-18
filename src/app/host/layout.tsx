@@ -3,7 +3,13 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Click-Master | Host Remote",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function HostLayout({
