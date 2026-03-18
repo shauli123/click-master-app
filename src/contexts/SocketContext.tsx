@@ -30,7 +30,7 @@ export const useSocket = () => {
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(true); // Default true for serverless (ready to start)
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [players, setPlayers] = useState<Record<string, Player>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -41,6 +41,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Cleanup on unmount
   useEffect(() => {
+    // Check if we have real credentials
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co' || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+       console.warn("Supabase credentials missing - using placeholders. Screens may stay disconnected.");
+    }
+
     return () => {
       if (channel) channel.unsubscribe();
     };
